@@ -1,103 +1,197 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { formatTime, startTimer, stopTimer, resetTimer } from "@/helpers/timer";
+import { scrollToBottom } from "@/helpers/chat";
+import { /* sendToOpenAI, */ addChatMessage, type TestFormData } from "@/helpers/openaiClient";
+// import { validateForm } from "@/helpers/validation";
+import type { ChatMessage } from "@/lib/openai";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  // Estado de los inputs del formulario superior
+  const [urlEasyPanel, setUrlEasyPanel] = useState("");
+  const [contactId, setContactId] = useState("");
+  const [locationId, setLocationId] = useState("");
+  const [emailTester, setEmailTester] = useState("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Historial del chat y control del temporizador
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  // Referencias para manejar el intervalo y el contenedor del chat
+  const intervalRef = useRef<number | null>(null);
+  const chatRef = useRef<HTMLDivElement | null>(null);
+
+  // Efecto: inicia/limpia el intervalo del temporizador según isRunning
+  useEffect(() => {
+    if (!isRunning) return;
+    startTimer(setElapsedSeconds, intervalRef);
+    return () => stopTimer(intervalRef);
+  }, [isRunning]);
+
+  // Efecto: hace scroll al final cada vez que llegan nuevos mensajes
+  useEffect(() => {
+    scrollToBottom(chatRef);
+  }, [messages]);
+
+  // Memo: convierte los segundos transcurridos a formato mm:ss
+  const formattedTime = useMemo(() => formatTime(elapsedSeconds), [elapsedSeconds]);
+
+  // Procesa el inicio del testeo (por ahora solo un mensaje de confirmación)
+  async function sendToModel() {
+    // 1) Validación básica de campos (comentada temporalmente para desarrollo)
+    // const { isValid, errors } = validateForm(urlEasyPanel, contactId, locationId, emailTester);
+    // if (!isValid) {
+    //   setMessages((prev) => [
+    //     ...prev,
+    //     { role: "assistant", content: `Errores: ${errors.join(" | ")}` },
+    //   ]);
+    //   return;
+    // }
+
+    // 2) Preparar datos del formulario (para futura API de testeo)
+    const formData: TestFormData = {
+      urlEasyPanel,
+      contactId,
+      locationId,
+      emailTester,
+    };
+    console.log("Datos del formulario preparados:", formData); // TODO: enviar a API de testeo
+
+    // 3) Por ahora, solo agregar mensaje de inicio al chat
+    const userMessage = `Iniciando testeo automático con los datos configurados...`;
+    setMessages((prev) => addChatMessage(prev, "user", userMessage));
+
+    // 4) TODO: Aquí irá la lógica para enviar formData a la API de testeo
+    // 5) TODO: Aquí usaremos sendToOpenAI() con datos específicos para el modelo
+    
+    // Mensaje temporal de confirmación
+    const confirmationMessage = "Testeo iniciado. Próximamente se integrará con la API real.";
+    setMessages((prev) => addChatMessage(prev, "assistant", confirmationMessage));
+  }
+
+  // Envía el POST mínimo al bot (endpoint interno)
+  async function sendMinimalBot() {
+    setMessages((prev) => addChatMessage(prev, "user", "Enviando POST mínimo al bot..."));
+    try {
+      const res = await fetch("/api/bot/send", { method: "GET" });
+      const data = await res.json();
+      const status = data.ok ? "✅ POST enviado correctamente" : `❌ Error (${data.status ?? "desconocido"})`;
+      setMessages((prev) => addChatMessage(prev, "assistant", status));
+      console.log("Resultado bot:", data);
+    } catch (error) {
+      setMessages((prev) => addChatMessage(prev, "assistant", "❌ Error de conexión"));
+      console.error(error);
+    }
+  }
+
+  // Controla el botón: inicia el temporizador y lanza la llamada; o bien detiene y resetea
+  function handleStart(): void {
+    if (!isRunning) {
+      resetTimer(setElapsedSeconds);
+      setIsRunning(true);
+      void sendToModel();
+      return;
+    }
+    stopTimer(intervalRef);
+    resetTimer(setElapsedSeconds);
+    setIsRunning(false);
+  }
+
+  return (
+    <div className="min-h-screen w-full px-6 py-8 md:px-10">
+      <div className="mx-auto w-full max-w-5xl space-y-6">
+        {/* Encabezado */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
+            Testeo Automático Bots
+          </h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Inputs superiores */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">URL EasyPanel</label>
+            <input
+              className="h-10 rounded-md border border-black/10 dark:border-white/15 bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30"
+              placeholder="https://..."
+              value={urlEasyPanel}
+              onChange={(e) => setUrlEasyPanel(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Contact_ID</label>
+            <input
+              className="h-10 rounded-md border border-black/10 dark:border-white/15 bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30"
+              placeholder="12345"
+              value={contactId}
+              onChange={(e) => setContactId(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Location_ID</label>
+            <input
+              className="h-10 rounded-md border border-black/10 dark:border-white/15 bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30"
+              placeholder="abc-001"
+              value={locationId}
+              onChange={(e) => setLocationId(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Email Tester</label>
+            <input
+              className="h-10 rounded-md border border-black/10 dark:border-white/15 bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30"
+              placeholder="tester@dominio.com"
+              type="email"
+              value={emailTester}
+              onChange={(e) => setEmailTester(e.target.value)}
+            />
+          </div>
+        </section>
+
+        {/* Chat */}
+        <section className="rounded-xl border border-black/10 dark:border-white/15 overflow-hidden">
+          <div ref={chatRef} className="h-[360px] overflow-y-auto bg-black/[.03] dark:bg-white/[.03] p-4 space-y-2">
+            {messages.length === 0 ? (
+              <p className="text-sm text-foreground/70">Aquí aparecerá el chat...</p>
+            ) : (
+              messages.map((m, i) => (
+                <div key={i} className="text-sm leading-6">
+                  <span className="font-semibold">{m.role === "user" ? "Tú: " : "Bot: "}</span>
+                  {m.content}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Pie del chat: botón de control y temporizador */}
+          <div className="flex items-center justify-center gap-4 border-t border-black/10 dark:border-white/15 px-4 py-3">
+            <button
+              type="button"
+              onClick={handleStart}
+              className={`inline-flex items-center justify-center rounded-md text-white px-4 py-2 text-sm font-bold cursor-pointer ${
+                isRunning ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
+              }`}
+            >
+              {isRunning ? "Stop" : "Iniciar"}
+            </button>
+
+            {/* Botón para enviar POST mínimo */}
+            <button
+              type="button"
+              onClick={sendMinimalBot}
+              className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-bold cursor-pointer"
+            >
+              Enviar POST
+            </button>
+
+            <div className="text-sm font-semibold tabular-nums text-yellow-400 border border-gray-400 p-1.5 rounded-md">
+              {formattedTime}
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
