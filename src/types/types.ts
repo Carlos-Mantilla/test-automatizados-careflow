@@ -1,22 +1,14 @@
-/**
- * Tipos compartidos de la aplicación
- */
+// Tipos compartidos de la aplicación
 
-// ==================== CHAT & MENSAJES ====================
-
-/**
- * Estructura de un mensaje de chat (OpenAI y chat interno)
- */
+// Estructura de un mensaje de chat (OpenAI y chat interno)
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
+  expectedResponse?: string; // Para testeo masivo: respuesta esperada del bot
+  timestamp?: string; // Hora local en la que se añadió el mensaje
 }
 
-// ==================== FORMULARIOS ====================
-
-/**
- * Datos del formulario principal de testeo
- */
+// Datos del formulario principal de testeo
 export interface FormData {
   urlEasyPanel: string;
   contactId: string;
@@ -24,13 +16,10 @@ export interface FormData {
   emailTester: string;
 }
 
-// ==================== BOT API ====================
 
 // ==================== TESTEO MASIVO ====================
 
-/**
- * Estructura de una pregunta de testeo
- */
+// Estructura de una pregunta de testeo
 export interface TestQuestion {
   id: string;
   category: string;
@@ -38,9 +27,7 @@ export interface TestQuestion {
   expected_response: string;
 }
 
-/**
- * Resultado de testeo de una pregunta individual
- */
+// Resultado de testeo de una pregunta individual
 export interface QuestionTestResult {
   questionId: string;
   question: string;
@@ -50,9 +37,7 @@ export interface QuestionTestResult {
   timestamp: string;
 }
 
-/**
- * Progreso del testeo masivo
- */
+// Progreso del testeo masivo
 export interface BatchTestProgress {
   current: number;
   total: number;
@@ -60,11 +45,8 @@ export interface BatchTestProgress {
   isRunning: boolean;
 }
 
-// ==================== RESULTADOS DE OPERACIONES ====================
 
-/**
- * Resultado de una operación de testeo
- */
+// Resultado de una operación de testeo
 export interface TestResult {
   success: boolean;
   message: string;

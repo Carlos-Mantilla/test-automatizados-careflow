@@ -74,6 +74,7 @@ async function testSingleQuestion(
  * @param questions - Array de preguntas a testear
  * @param formData - Datos del formulario
  * @param onProgress - Callback para reportar progreso
+ * @param shouldStop - Función que retorna true si se debe detener el testeo
  * @param delayMs - Delay entre preguntas en millisegundos (default: 2000ms)
  * @returns Array de resultados
  */
@@ -81,6 +82,7 @@ export async function runBatchTesting(
   questions: TestQuestion[],
   formData: FormData,
   onProgress: (progress: BatchTestProgress) => void,
+  shouldStop: () => boolean,
   delayMs: number = 2000
 ): Promise<QuestionTestResult[]> {
   const results: QuestionTestResult[] = [];
@@ -94,7 +96,21 @@ export async function runBatchTesting(
     isRunning: true,
   });
 
+  let stoppedEarly = false;
   for (let i = 0; i < questions.length; i++) {
+    // Verificar si se debe detener el testeo
+    if (shouldStop()) {
+      // Reportar estado detenido
+      onProgress({
+        current: i,
+        total,
+        completed: [...results],
+        isRunning: false,
+      });
+      stoppedEarly = true;
+      break;
+    }
+
     const question = questions[i];
 
     // Testear la pregunta actual
@@ -112,16 +128,30 @@ export async function runBatchTesting(
     // Delay entre preguntas (excepto en la última)
     if (i < questions.length - 1) {
       await new Promise((resolve) => setTimeout(resolve, delayMs));
+      
+      // Verificar nuevamente después del delay si se debe detener
+      if (shouldStop()) {
+        onProgress({
+          current: i + 1,
+          total,
+          completed: [...results],
+          isRunning: false,
+        });
+        stoppedEarly = true;
+        break;
+      }
     }
   }
 
-  // Testeo completado
-  onProgress({
-    current: total,
-    total,
-    completed: results,
-    isRunning: false,
-  });
+  // Testeo completado solo si NO se detuvo anticipadamente
+  if (!stoppedEarly) {
+    onProgress({
+      current: total,
+      total,
+      completed: [...results],
+      isRunning: false,
+    });
+  }
 
   return results;
 }
@@ -129,13 +159,15 @@ export async function runBatchTesting(
 /**
  * Crea un resumen de los resultados del testeo masivo
  * @param results - Resultados del testeo
+ * @param totalPlanned - Total de preguntas planeadas (opcional, para testeos interrumpidos)
  * @returns Resumen con estadísticas
  */
-export function createBatchTestSummary(results: QuestionTestResult[]) {
-  const total = results.length;
+export function createBatchTestSummary(results: QuestionTestResult[], totalPlanned?: number) {
+  const completed = results.length;
   const successful = results.filter((r) => r.success).length;
-  const failed = total - successful;
-  const successRate = total > 0 ? Math.round((successful / total) * 100) : 0;
+  const failed = completed - successful;
+  const total = totalPlanned || completed; // Usar total planeado si se proporciona
+  const successRate = completed > 0 ? Math.round((successful / completed) * 100) : 0;
 
   const categoryCounts = results.reduce((acc, result) => {
     // Extraer categoría del ID (ej: "KG-01" -> "KG")
@@ -146,6 +178,7 @@ export function createBatchTestSummary(results: QuestionTestResult[]) {
 
   return {
     total,
+    completed,
     successful,
     failed,
     successRate,

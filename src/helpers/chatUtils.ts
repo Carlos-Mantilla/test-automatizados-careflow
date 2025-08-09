@@ -9,18 +9,21 @@ import type { ChatMessage, TestResult } from "@/types/types";
  */
 export function createTestingMessages(result: TestResult): ChatMessage[] {
   const messages: ChatMessage[] = [];
+  const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
   // Mensaje de estado
   messages.push({
     role: "system",
-    content: result.message
+    content: result.message,
+    timestamp: now
   });
 
   // Mensaje enviado al bot (si existe)
   if (result.messageBody) {
     messages.push({
       role: "user", 
-      content: result.messageBody
+      content: result.messageBody,
+      timestamp: now
     });
   }
 
@@ -29,7 +32,8 @@ export function createTestingMessages(result: TestResult): ChatMessage[] {
     const botMessage = extractBotMessage(result.botResponse);
     messages.push({
       role: "assistant",
-      content: botMessage
+      content: botMessage,
+      timestamp: now
     });
   }
 
@@ -69,7 +73,8 @@ export function addChatMessage(
   role: "user" | "assistant" | "system",
   content: string
 ): ChatMessage[] {
-  return [...messages, { role, content }];
+  const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return [...messages, { role, content, timestamp }];
 }
 
 /**

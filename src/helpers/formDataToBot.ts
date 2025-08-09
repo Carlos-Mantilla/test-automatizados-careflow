@@ -22,7 +22,7 @@ export async function formDataToBot(formData: FormData): Promise<TestResult> {
   if (!isValid) {
     return {
       success: false,
-      message: `❌ Errores de validación: ${errors.join(" | ")}`,
+      message: `Errores de validación ❌: ${errors.join(" | ")}`,
     };
   }
 
