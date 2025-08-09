@@ -27,33 +27,25 @@ export async function sendToModel(formData: FormData): Promise<TestResult> {
   }
 
   try {
-    // 2) Construir payload para el bot
-    const botPayload = {
-      location: { id: formData.locationId },
-      phone: process.env.WS_NUMBER,
-      contact_id: formData.contactId,
-      message: { 
-        body: `que servicios tienen?` 
-      }
-    };
-
-    // 3) Enviar al bot
+    // 2) Enviar datos del formulario directamente al API
     const response = await fetch("/api/bot/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(botPayload),
+      body: JSON.stringify(formData),
     });
 
     const data = await response.json();
 
-    // 4) Retornar resultado
+    // 3) Retornar resultado  
+    const messageBody = `Test desde ${formData.urlEasyPanel} - Email: ${formData.emailTester}`;
+    
     return {
       success: data.ok,
       message: data.ok 
         ? "Testeo enviado al bot correctamente ✅" 
         : `❌ Error en testeo (${data.status ?? "desconocido"})`,
       data,
-      messageBody: botPayload.message.body,
+      messageBody,
       botResponse: data
     };
 

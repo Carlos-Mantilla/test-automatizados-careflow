@@ -26,25 +26,6 @@ export interface FormData {
 
 // ==================== BOT API ====================
 
-/**
- * Payload mínimo requerido para el bot EasyPanel
- */
-export interface MinimalBotPayload {
-  location: { id: string };
-  phone: string;
-  contact_id: string;
-  message: { body: string };
-}
-
-/**
- * Respuesta estándar de operaciones con el bot
- */
-export interface BotApiResponse {
-  ok: boolean;
-  status: number;
-  data: Record<string, unknown>;
-}
-
 // ==================== RESULTADOS DE OPERACIONES ====================
 
 /**

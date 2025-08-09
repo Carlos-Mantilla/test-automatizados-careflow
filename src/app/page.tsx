@@ -1,23 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { formatTime, startTimer, stopTimer, resetTimer } from "@/helpers/timer";
-import { scrollToBottom } from "@/helpers/chat";
-import { addChatMessage } from "@/helpers/openaiClient";
-import { sendToModel } from "@/helpers/sendToModel";
+import { useEffect, useRef, useState } from "react";
+import { useTimer } from "@/hooks/useTimer";
+import { useBotTesting } from "@/hooks/useBotTesting";
+import { scrollToBottom, addChatMessage, addMultipleMessages, createTestingMessages } from "@/helpers/chatUtils";
 import type { ChatMessage } from "@/types/types";
 
-// Tipo para la respuesta del bot
-type BotResponse = {
-  ok: boolean;
-  status: number;
-  data: {
-    respuesta?: string;
-    agente?: string;
-    entregado_a?: string;
-    origin?: string;
-  };
-};
+// Este tipo se movió a chatUtils.ts - ya no es necesario aquí
 
 export default function Home() {
   // Estado de los inputs del formulario superior
@@ -26,61 +15,48 @@ export default function Home() {
   const [locationId, setLocationId] = useState("");
   const [emailTester, setEmailTester] = useState("");
 
-  // Historial del chat y control del temporizador
+  // Historial del chat
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isRunning, setIsRunning] = useState(false);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-  // Referencias para manejar el intervalo y el contenedor del chat
-  const intervalRef = useRef<number | null>(null);
+  // Custom hooks
+  const { isRunning, formattedTime, start, reset, cleanup } = useTimer();
+  const { executeTest } = useBotTesting();
+
+  // Referencia para scroll automático
   const chatRef = useRef<HTMLDivElement | null>(null);
-
-  // Efecto: inicia/limpia el intervalo del temporizador según isRunning
-  useEffect(() => {
-    if (!isRunning) return;
-    startTimer(setElapsedSeconds, intervalRef);
-    return () => stopTimer(intervalRef);
-  }, [isRunning]);
 
   // Efecto: hace scroll al final cada vez que llegan nuevos mensajes
   useEffect(() => {
     scrollToBottom(chatRef);
   }, [messages]);
 
-  // Memo: convierte los segundos transcurridos a formato mm:ss
-  const formattedTime = useMemo(() => formatTime(elapsedSeconds), [elapsedSeconds]);
+  // Cleanup del timer al desmontar el componente
+  useEffect(() => {
+    return cleanup;
+  }, [cleanup]);
 
 
-  // Procesa el inicio del testeo - lógica de UI únicamente
+  // Maneja el proceso de testeo completo
   async function handleSendToModel() {
-    // 1) Mensaje de inicio en el chat
-    const systemMessage = `Iniciando testeo...`;
-    setMessages((prev) => addChatMessage(prev, "system", systemMessage));
+    // 1) Mensaje de inicio
+    setMessages((prev) => addChatMessage(prev, "system", "Iniciando testeo..."));
 
-    // 2) Ejecutar testeo usando el helper
-    const result = await sendToModel({
+    // 2) Ejecutar testeo usando el hook
+    const result = await executeTest({
       urlEasyPanel,
       contactId,
       locationId,
       emailTester,
     });
 
-    // 3) Mostrar resultado en el chat
-    setMessages((prev) => addChatMessage(prev, "system", result.message));
+    // 3) Agregar todos los mensajes resultado del testeo
+    const testingMessages = createTestingMessages(result);
+    setMessages((prev) => addMultipleMessages(prev, testingMessages));
 
-    // 4) Mostrar el mensaje enviado al bot
-    if (result.messageBody) {
-      setMessages((prev) => addChatMessage(prev, "user", `${result.messageBody}`));
+    // 4) Log para debugging
+    if (result.botResponse) {
+      console.log("Respuesta del bot (completa):", result.botResponse);
     }
-
-    // 5) Mostrar la respuesta del bot
-    // Extraer la respuesta específica del bot
-    const botData = result.botResponse as BotResponse;
-    const botMessage = botData?.data?.respuesta || "Sin respuesta del bot";
-
-    console.log("Respuesta del bot (completa):", result.botResponse);
-
-    setMessages((prev) => addChatMessage(prev, "assistant", `${botMessage}`));
   }
 
 
@@ -88,14 +64,12 @@ export default function Home() {
   // Controla el botón: inicia el temporizador y lanza la llamada; o bien detiene y resetea
   function handleStart(): void {
     if (!isRunning) {
-      resetTimer(setElapsedSeconds);
-      setIsRunning(true);
-      void handleSendToModel();
+      reset(); // resetear antes de empezar
+      start(); // iniciar timer
+      void handleSendToModel(); // ejecutar testeo
       return;
     }
-    stopTimer(intervalRef);
-    resetTimer(setElapsedSeconds);
-    setIsRunning(false);
+    reset(); // parar y resetear
   }
 
   return (
