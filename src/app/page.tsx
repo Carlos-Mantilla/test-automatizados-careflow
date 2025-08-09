@@ -65,7 +65,7 @@ export default function Home() {
 
     // 4) TODO: Aquí irá la lógica para enviar formData a la API de testeo
     // 5) TODO: Aquí usaremos sendToOpenAI() con datos específicos para el modelo
-    
+
     // Mensaje temporal de confirmación
     const confirmationMessage = "Testeo iniciado. Próximamente se integrará con la API real.";
     setMessages((prev) => addChatMessage(prev, "assistant", confirmationMessage));
@@ -75,7 +75,11 @@ export default function Home() {
   async function sendMinimalBot() {
     setMessages((prev) => addChatMessage(prev, "user", "Enviando POST mínimo al bot..."));
     try {
-      const res = await fetch("/api/bot/send", { method: "GET" });
+      const res = await fetch("/api/bot/send", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}) // Body vacío para usar defaults
+      });
       const data = await res.json();
       const status = data.ok ? "✅ POST enviado correctamente" : `❌ Error (${data.status ?? "desconocido"})`;
       setMessages((prev) => addChatMessage(prev, "assistant", status));
@@ -170,9 +174,8 @@ export default function Home() {
             <button
               type="button"
               onClick={handleStart}
-              className={`inline-flex items-center justify-center rounded-md text-white px-4 py-2 text-sm font-bold cursor-pointer ${
-                isRunning ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
-              }`}
+              className={`inline-flex items-center justify-center rounded-md text-white px-4 py-2 text-sm font-bold cursor-pointer ${isRunning ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
+                }`}
             >
               {isRunning ? "Stop" : "Iniciar"}
             </button>
