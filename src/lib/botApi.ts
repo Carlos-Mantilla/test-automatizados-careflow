@@ -1,19 +1,13 @@
 import "server-only";
+import type { MinimalBotPayload, BotApiResponse } from "@/types/types";
 
 export const DEFAULT_BOT_ENDPOINT =
   process.env.BOT_ENDPOINT ||
   "https://n8n-gotiger-bot-esdras-gliobot.fevig1.easypanel.host/gliohealth";
 
-export interface MinimalBotPayload {
-  location: { id: string };
-  phone: string;
-  contact_id: string;
-  message: { body: string };
-}
-
 // Envía POST al bot con los datos que le pases
-export async function postToBot(data?: Partial<MinimalBotPayload>) {
-  const payload = {
+export async function postToBot(data?: Partial<MinimalBotPayload>): Promise<BotApiResponse> {
+  const payload: MinimalBotPayload = {
     location: { id: data?.location?.id ?? "odQon2KjVfTD1ubFdwBK" },
     phone: data?.phone ?? "+573019505508",
     contact_id: data?.contact_id ?? "3oLF4VLMplbFH0fQmgKF",

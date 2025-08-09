@@ -2,17 +2,7 @@
  * Cliente para comunicación con OpenAI
  */
 
-import type { ChatMessage } from "@/lib/openai";
-
-/**
- * Datos del formulario de testeo (para otra API futura)
- */
-export interface TestFormData {
-  urlEasyPanel: string;
-  contactId: string;
-  locationId: string;
-  emailTester: string;
-}
+import type { ChatMessage } from "@/types/types";
 
 /**
  * Envía un prompt específico al modelo OpenAI

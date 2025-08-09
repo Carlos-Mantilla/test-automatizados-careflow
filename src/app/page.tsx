@@ -5,8 +5,9 @@ import { formatTime, startTimer, stopTimer, resetTimer } from "@/helpers/timer";
 import { scrollToBottom } from "@/helpers/chat";
 import { addChatMessage } from "@/helpers/openaiClient";
 import { sendToModel } from "@/helpers/sendToModel";
-import type { ChatMessage } from "@/lib/openai";
+import type { ChatMessage } from "@/types/types";
 
+// Tipo para la respuesta del bot
 type BotResponse = {
   ok: boolean;
   status: number;

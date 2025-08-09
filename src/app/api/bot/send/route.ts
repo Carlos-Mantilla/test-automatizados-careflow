@@ -1,4 +1,5 @@
-import { postToBot, type MinimalBotPayload } from "@/lib/botApi";
+import { postToBot } from "@/lib/botApi";
+import type { MinimalBotPayload } from "@/types/types";
 
 export async function POST(req: Request) {
   try {

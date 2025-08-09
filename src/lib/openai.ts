@@ -1,14 +1,10 @@
 import "server-only";
 import OpenAI from "openai";
+import type { ChatMessage } from "@/types/types";
 
 export const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-export type ChatMessage = {
-  role: "system" | "user" | "assistant";
-  content: string;
-};
 
 // messages viene de una variable externa (pásala tal cual)
 export async function chatComplete(messages: ChatMessage[]) {

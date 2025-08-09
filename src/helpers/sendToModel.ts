@@ -3,21 +3,7 @@
  */
 
 import { validateForm } from "./validation";
-
-export interface FormData {
-  urlEasyPanel: string;
-  contactId: string;
-  locationId: string;
-  emailTester: string;
-}
-
-export interface TestResult {
-  success: boolean;
-  message: string;
-  data?: unknown;
-  messageBody?: string;
-  botResponse?: unknown;
-}
+import type { FormData, TestResult } from "@/types/types";
 
 /**
  * Ejecuta el testeo enviando los datos del formulario al bot
