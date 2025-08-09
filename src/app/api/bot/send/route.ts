@@ -2,10 +2,16 @@ import type { FormData } from "@/types/types";
 
 export async function POST(req: Request) {
   try {
-    const formData = await req.json() as FormData;
+    const requestData = await req.json();
+    const formData = requestData as FormData;
     const phone = process.env.WS_NUMBER;
     
     if (!phone) throw new Error("WS_NUMBER no configurado");
+    
+    // Determinar el mensaje a enviar
+    const messageBody = requestData.testQuestion 
+      ? requestData.testQuestion  // Si viene una pregunta específica (testeo masivo)
+      : `Test desde ${formData.urlEasyPanel} - Email: ${formData.emailTester}`; // Mensaje por defecto
     
     // Construir payload del bot usando los datos del formulario
     const payload = {
@@ -13,7 +19,7 @@ export async function POST(req: Request) {
       phone,
       contact_id: formData.contactId,
       message: { 
-        body: `Test desde ${formData.urlEasyPanel} - Email: ${formData.emailTester}` 
+        body: messageBody
       }
     };
     

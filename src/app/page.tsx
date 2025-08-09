@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useTimer } from "@/hooks/useTimer";
 import { useBotTesting } from "@/hooks/useBotTesting";
+import { useBatchTesting } from "@/hooks/useBatchTesting";
 import { scrollToBottom, addChatMessage, addMultipleMessages, createTestingMessages } from "@/helpers/chatUtils";
+import { testQuestionsData } from "@/data";
 import type { ChatMessage } from "@/types/types";
 
 // Este tipo se movió a chatUtils.ts - ya no es necesario aquí
@@ -18,9 +20,13 @@ export default function Home() {
   // Historial del chat
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
+  // Modo de testeo: individual vs masivo
+  const [isBatchMode, setIsBatchMode] = useState(false);
+
   // Custom hooks
   const { isRunning, formattedTime, start, reset, cleanup } = useTimer();
   const { executeTest } = useBotTesting();
+  const { progress, summary, executeBatchTest, resetBatchTest, isRunning: isBatchRunning } = useBatchTesting();
 
   // Referencia para scroll automático
   const chatRef = useRef<HTMLDivElement | null>(null);
@@ -36,10 +42,10 @@ export default function Home() {
   }, [cleanup]);
 
 
-  // Maneja el proceso de testeo completo
-  async function handleSendToModel() {
+  // Maneja el proceso de testeo individual
+  async function handleformDataToBot() {
     // 1) Mensaje de inicio
-    setMessages((prev) => addChatMessage(prev, "system", "Iniciando testeo..."));
+    setMessages((prev) => addChatMessage(prev, "system", "Iniciando testeo individual..."));
 
     // 2) Ejecutar testeo usando el hook
     const result = await executeTest({
@@ -59,17 +65,75 @@ export default function Home() {
     }
   }
 
+  // Maneja el proceso de testeo masivo
+  async function handleBatchTesting() {
+    // 1) Mensaje de inicio
+    setMessages((prev) => addChatMessage(prev, "system", `Iniciando testeo masivo: ${testQuestionsData.length} preguntas...`));
+
+    try {
+      // 2) Ejecutar testeo masivo
+      await executeBatchTest(testQuestionsData, {
+        urlEasyPanel,
+        contactId,
+        locationId,
+        emailTester,
+      });
+
+      // 3) Mensaje de finalización
+      setMessages((prev) => addChatMessage(prev, "system", "✅ Testeo masivo completado. Ver resumen más abajo."));
+
+    } catch (error) {
+      console.error("Error en testeo masivo:", error);
+      setMessages((prev) => addChatMessage(prev, "system", "❌ Error en testeo masivo"));
+    }
+  }
+
+  // Efecto para mostrar preguntas y respuestas en tiempo real durante testeo masivo
+  useEffect(() => {
+    if (isBatchMode && progress.completed.length > 0) {
+      const lastResult = progress.completed[progress.completed.length - 1];
+      
+      // Agregar la pregunta y respuesta al chat
+      setMessages((prev) => {
+        const newMessages = [
+          ...prev,
+          {
+            role: "user" as const,
+            content: `[${lastResult.questionId}] ${lastResult.question}`
+          },
+          {
+            role: "assistant" as const,
+            content: lastResult.actualResponse
+          }
+        ];
+        return newMessages;
+      });
+    }
+  }, [progress.completed.length, isBatchMode]);
+
 
 
   // Controla el botón: inicia el temporizador y lanza la llamada; o bien detiene y resetea
   function handleStart(): void {
-    if (!isRunning) {
+    const currentlyRunning = isRunning || isBatchRunning;
+    
+    if (!currentlyRunning) {
       reset(); // resetear antes de empezar
+      resetBatchTest(); // resetear testeo masivo
       start(); // iniciar timer
-      void handleSendToModel(); // ejecutar testeo
+      
+      // Ejecutar el tipo de testeo según el modo
+      if (isBatchMode) {
+        void handleBatchTesting(); // testeo masivo
+      } else {
+        void handleformDataToBot(); // testeo individual
+      }
       return;
     }
-    reset(); // parar y resetear
+    
+    // Parar y resetear todo
+    reset(); 
+    resetBatchTest();
   }
 
   return (
@@ -81,6 +145,45 @@ export default function Home() {
             Testeo Automático Bots
           </h1>
         </header>
+
+        {/* Toggle de modo de testeo */}
+        <section className="flex items-center justify-between border border-black/10 dark:border-white/15 rounded-lg p-4">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium">Modo de testeo:</span>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="testMode"
+                checked={!isBatchMode}
+                onChange={() => setIsBatchMode(false)}
+                className="text-blue-600"
+              />
+              <span className="text-sm">Individual (1 mensaje)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="testMode"
+                checked={isBatchMode}
+                onChange={() => setIsBatchMode(true)}
+                className="text-blue-600"
+              />
+              <span className="text-sm">Masivo ({testQuestionsData.length} preguntas)</span>
+            </label>
+          </div>
+          
+          {/* Progreso del testeo masivo */}
+          {isBatchMode && progress.total > 0 && (
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Progreso: {progress.current}/{progress.total} 
+              {progress.current > 0 && (
+                <span className="ml-2">
+                  ({Math.round((progress.current / progress.total) * 100)}%)
+                </span>
+              )}
+            </div>
+          )}
+        </section>
 
         {/* Inputs superiores */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -171,10 +274,10 @@ export default function Home() {
             <button
               type="button"
               onClick={handleStart}
-              className={`inline-flex items-center justify-center rounded-md text-white px-4 py-2 text-sm font-bold cursor-pointer w-20 active:scale-95 transition-all duration-100 ${isRunning ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
+              className={`inline-flex items-center justify-center rounded-md text-white px-4 py-2 text-sm font-bold cursor-pointer w-20 active:scale-95 transition-all duration-100 ${(isRunning || isBatchRunning) ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
                 }`}
             >
-              {isRunning ? "Stop" : "Iniciar"}
+              {(isRunning || isBatchRunning) ? "Stop" : "Iniciar"}
             </button>
             {/* Contador de tiempo */}
             <div className="text-sm font-semibold tabular-nums text-yellow-400 border border-gray-400 p-1.5 rounded-md">
@@ -182,6 +285,94 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Resumen del testeo masivo */}
+        {isBatchMode && summary && (
+          <section className="border border-black/10 dark:border-white/15 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-4">📊 Resumen del Testeo Masivo</h3>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{summary.total}</div>
+                <div className="text-sm text-blue-600">Total</div>
+              </div>
+              <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">{summary.successful}</div>
+                <div className="text-sm text-green-600">Exitosos</div>
+              </div>
+              <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">{summary.failed}</div>
+                <div className="text-sm text-red-600">Fallidos</div>
+              </div>
+              <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                <div className="text-2xl font-bold text-yellow-600">{summary.successRate}%</div>
+                <div className="text-sm text-yellow-600">Éxito</div>
+              </div>
+            </div>
+
+            {/* Distribución por categorías */}
+            <div className="mb-4">
+              <h4 className="font-medium mb-2">Distribución por categorías:</h4>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(summary.categoryCounts).map(([category, count]) => (
+                  <span 
+                    key={category}
+                    className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm"
+                  >
+                    {category}: {count}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Duración */}
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Duración total: {Math.round(summary.duration / 1000)}s
+            </div>
+          </section>
+        )}
+
+        {/* Lista detallada de resultados del testeo masivo */}
+        {isBatchMode && progress.completed.length > 0 && (
+          <section className="border border-black/10 dark:border-white/15 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-4">📋 Resultados Detallados ({progress.completed.length})</h3>
+            
+            <div className="max-h-96 overflow-y-auto space-y-2">
+              {progress.completed.map((result) => (
+                <div 
+                  key={result.questionId}
+                  className={`p-3 rounded-lg border-l-4 ${result.success 
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-500'
+                    : 'bg-red-50 dark:bg-red-900/20 border-red-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">{result.questionId}</span>
+                    <span className={`text-xs px-2 py-1 rounded ${result.success 
+                      ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100'
+                      : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
+                    }`}>
+                      {result.success ? 'Éxito' : 'Error'}
+                    </span>
+                  </div>
+                  
+                  <div className="text-sm space-y-1">
+                    <div><strong>P:</strong> {result.question}</div>
+                    <div><strong>Bot:</strong> {result.actualResponse}</div>
+                    <details className="mt-2">
+                      <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
+                        Ver respuesta esperada
+                      </summary>
+                      <div className="mt-1 text-gray-600 text-xs">
+                        <strong>Esperada:</strong> {result.expectedResponse}
+                      </div>
+                    </details>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </section>
     </main>
   );

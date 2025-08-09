@@ -26,6 +26,40 @@ export interface FormData {
 
 // ==================== BOT API ====================
 
+// ==================== TESTEO MASIVO ====================
+
+/**
+ * Estructura de una pregunta de testeo
+ */
+export interface TestQuestion {
+  id: string;
+  category: string;
+  question: string;
+  expected_response: string;
+}
+
+/**
+ * Resultado de testeo de una pregunta individual
+ */
+export interface QuestionTestResult {
+  questionId: string;
+  question: string;
+  expectedResponse: string;
+  actualResponse: string;
+  success: boolean;
+  timestamp: string;
+}
+
+/**
+ * Progreso del testeo masivo
+ */
+export interface BatchTestProgress {
+  current: number;
+  total: number;
+  completed: QuestionTestResult[];
+  isRunning: boolean;
+}
+
 // ==================== RESULTADOS DE OPERACIONES ====================
 
 /**

@@ -3,7 +3,7 @@
  */
 
 import { useState, useCallback } from "react";
-import { sendToModel } from "@/helpers/sendToModel";
+import { formDataToBot } from "@/helpers/formDataToBot";
 import type { FormData, TestResult } from "@/types/types";
 
 export interface BotTestingState {
@@ -27,7 +27,7 @@ export function useBotTesting(): BotTestingState & BotTestingActions {
     setError(null);
     
     try {
-      const result = await sendToModel(formData);
+      const result = await formDataToBot(formData);
       setLastResult(result);
       
       if (!result.success) {

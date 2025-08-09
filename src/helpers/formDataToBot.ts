@@ -10,7 +10,7 @@ import type { FormData, TestResult } from "@/types/types";
  * @param formData - Datos del formulario de testeo
  * @returns Resultado del testeo
  */
-export async function sendToModel(formData: FormData): Promise<TestResult> {
+export async function formDataToBot(formData: FormData): Promise<TestResult> {
   // 1) Validación básica de campos
   const { isValid, errors } = validateForm(
     formData.urlEasyPanel,
