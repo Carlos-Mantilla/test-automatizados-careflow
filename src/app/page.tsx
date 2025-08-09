@@ -3,9 +3,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatTime, startTimer, stopTimer, resetTimer } from "@/helpers/timer";
 import { scrollToBottom } from "@/helpers/chat";
-import { /* sendToOpenAI, */ addChatMessage, type TestFormData } from "@/helpers/openaiClient";
-// import { validateForm } from "@/helpers/validation";
+import { addChatMessage } from "@/helpers/openaiClient";
+import { sendToModel } from "@/helpers/sendToModel";
 import type { ChatMessage } from "@/lib/openai";
+
+type BotResponse = {
+  ok: boolean;
+  status: number;
+  data: {
+    respuesta?: string;
+    agente?: string;
+    entregado_a?: string;
+    origin?: string;
+  };
+};
 
 export default function Home() {
   // Estado de los inputs del formulario superior
@@ -38,64 +49,47 @@ export default function Home() {
   // Memo: convierte los segundos transcurridos a formato mm:ss
   const formattedTime = useMemo(() => formatTime(elapsedSeconds), [elapsedSeconds]);
 
-  // Procesa el inicio del testeo (por ahora solo un mensaje de confirmación)
-  async function sendToModel() {
-    // 1) Validación básica de campos (comentada temporalmente para desarrollo)
-    // const { isValid, errors } = validateForm(urlEasyPanel, contactId, locationId, emailTester);
-    // if (!isValid) {
-    //   setMessages((prev) => [
-    //     ...prev,
-    //     { role: "assistant", content: `Errores: ${errors.join(" | ")}` },
-    //   ]);
-    //   return;
-    // }
 
-    // 2) Preparar datos del formulario (para futura API de testeo)
-    const formData: TestFormData = {
+  // Procesa el inicio del testeo - lógica de UI únicamente
+  async function handleSendToModel() {
+    // 1) Mensaje de inicio en el chat
+    const systemMessage = `Iniciando testeo...`;
+    setMessages((prev) => addChatMessage(prev, "system", systemMessage));
+
+    // 2) Ejecutar testeo usando el helper
+    const result = await sendToModel({
       urlEasyPanel,
       contactId,
       locationId,
       emailTester,
-    };
-    console.log("Datos del formulario preparados:", formData); // TODO: enviar a API de testeo
+    });
 
-    // 3) Por ahora, solo agregar mensaje de inicio al chat
-    const userMessage = `Iniciando testeo automático con los datos configurados...`;
-    setMessages((prev) => addChatMessage(prev, "user", userMessage));
+    // 3) Mostrar resultado en el chat
+    setMessages((prev) => addChatMessage(prev, "system", result.message));
 
-    // 4) TODO: Aquí irá la lógica para enviar formData a la API de testeo
-    // 5) TODO: Aquí usaremos sendToOpenAI() con datos específicos para el modelo
-
-    // Mensaje temporal de confirmación
-    const confirmationMessage = "Testeo iniciado. Próximamente se integrará con la API real.";
-    setMessages((prev) => addChatMessage(prev, "assistant", confirmationMessage));
-  }
-
-  // Envía el POST mínimo al bot (endpoint interno)
-  async function sendMinimalBot() {
-    setMessages((prev) => addChatMessage(prev, "user", "Enviando POST mínimo al bot..."));
-    try {
-      const res = await fetch("/api/bot/send", { 
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}) // Body vacío para usar defaults
-      });
-      const data = await res.json();
-      const status = data.ok ? "✅ POST enviado correctamente" : `❌ Error (${data.status ?? "desconocido"})`;
-      setMessages((prev) => addChatMessage(prev, "assistant", status));
-      console.log("Resultado bot:", data);
-    } catch (error) {
-      setMessages((prev) => addChatMessage(prev, "assistant", "❌ Error de conexión"));
-      console.error(error);
+    // 4) Mostrar el mensaje enviado al bot
+    if (result.messageBody) {
+      setMessages((prev) => addChatMessage(prev, "user", `${result.messageBody}`));
     }
+
+    // 5) Mostrar la respuesta del bot
+    // Extraer la respuesta específica del bot
+    const botData = result.botResponse as BotResponse;
+    const botMessage = botData?.data?.respuesta || "Sin respuesta del bot";
+
+    console.log("Respuesta del bot (completa):", result.botResponse);
+
+    setMessages((prev) => addChatMessage(prev, "assistant", `${botMessage}`));
   }
+
+
 
   // Controla el botón: inicia el temporizador y lanza la llamada; o bien detiene y resetea
   function handleStart(): void {
     if (!isRunning) {
       resetTimer(setElapsedSeconds);
       setIsRunning(true);
-      void sendToModel();
+      void handleSendToModel();
       return;
     }
     stopTimer(intervalRef);
@@ -104,14 +98,14 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen w-full px-6 py-8 md:px-10">
-      <div className="mx-auto w-full max-w-5xl space-y-6">
+    <main className="min-h-screen w-full px-6 py-8 md:px-10">
+      <section className="mx-auto w-full max-w-5xl space-y-6">
         {/* Encabezado */}
-        <div className="flex items-center justify-between">
+        <header className="flex items-center justify-between">
           <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
             Testeo Automático Bots
           </h1>
-        </div>
+        </header>
 
         {/* Inputs superiores */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -161,9 +155,36 @@ export default function Home() {
               <p className="text-sm text-foreground/70">Aquí aparecerá el chat...</p>
             ) : (
               messages.map((m, i) => (
-                <div key={i} className="text-sm leading-6">
-                  <span className="font-semibold">{m.role === "user" ? "Tú: " : "Bot: "}</span>
-                  {m.content}
+                <div
+                  key={i}
+                  className={`text-sm leading-6 p-3 rounded-lg mb-2 ${m.role === "user"
+                      ? "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500"
+                      : m.role === "system"
+                        ? "bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500"
+                        : "bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500"
+                    }`}
+                >
+                  <span
+                    className={`font-semibold ${m.role === "user"
+                        ? "text-blue-900 dark:text-blue-300"
+                        : m.role === "system"
+                          ? "text-yellow-700 dark:text-yellow-300"
+                          : "text-green-700 dark:text-green-300"
+                      }`}
+                  >
+                    {m.role === "user" ? "Tú: " : m.role === "system" ? "Sistema 🚨: " : "Bot 🤖: "}
+                  </span>
+                  <span
+                    className={
+                      m.role === "user"
+                        ? "text-blue-900 dark:text-blue-100"
+                        : m.role === "system"
+                          ? "text-yellow-900 dark:text-yellow-100"
+                          : "text-green-800 dark:text-green-100 "
+                    }
+                  >
+                    {m.content}
+                  </span>
                 </div>
               ))
             )}
@@ -171,30 +192,22 @@ export default function Home() {
 
           {/* Pie del chat: botón de control y temporizador */}
           <div className="flex items-center justify-center gap-4 border-t border-black/10 dark:border-white/15 px-4 py-3">
+            {/* Botón de control */}
             <button
               type="button"
               onClick={handleStart}
-              className={`inline-flex items-center justify-center rounded-md text-white px-4 py-2 text-sm font-bold cursor-pointer ${isRunning ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
+              className={`inline-flex items-center justify-center rounded-md text-white px-4 py-2 text-sm font-bold cursor-pointer w-20 active:scale-95 transition-all duration-100 ${isRunning ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
                 }`}
             >
               {isRunning ? "Stop" : "Iniciar"}
             </button>
-
-            {/* Botón para enviar POST mínimo */}
-            <button
-              type="button"
-              onClick={sendMinimalBot}
-              className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-bold cursor-pointer"
-            >
-              Enviar POST
-            </button>
-
+            {/* Contador de tiempo */}
             <div className="text-sm font-semibold tabular-nums text-yellow-400 border border-gray-400 p-1.5 rounded-md">
               {formattedTime}
             </div>
           </div>
         </section>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

@@ -51,13 +51,13 @@ export async function sendToOpenAI(
 /**
  * Agrega un mensaje al historial del chat
  * @param messages - Historial actual
- * @param role - Rol del mensaje (user/assistant)
+ * @param role - Rol del mensaje (user/assistant/system)
  * @param content - Contenido del mensaje
  * @returns Nuevo historial con el mensaje agregado
  */
 export function addChatMessage(
   messages: ChatMessage[],
-  role: "user" | "assistant",
+  role: "user" | "assistant" | "system",
   content: string
 ): ChatMessage[] {
   return [...messages, { role, content }];
