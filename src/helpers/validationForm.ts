@@ -51,31 +51,49 @@ export function validateForm(
 ): {
   isValid: boolean;
   errors: string[];
+  fields: Partial<Record<"urlEasyPanel" | "contactId" | "locationId" | "emailTester", string>>;
 } {
   const errors: string[] = [];
+  const fields: Partial<Record<
+    "urlEasyPanel" | "contactId" | "locationId" | "emailTester",
+    string
+  >> = {};
 
   if (!isNotEmpty(urlEasyPanel)) {
-    errors.push("URL EasyPanel es requerida");
+    const msg = "URL EasyPanel es requerida";
+    errors.push(msg);
+    fields.urlEasyPanel = msg;
   } else if (!isValidUrl(urlEasyPanel)) {
-    errors.push("URL EasyPanel debe ser una URL válida");
+    const msg = "URL EasyPanel debe ser una URL válida";
+    errors.push(msg);
+    fields.urlEasyPanel = msg;
   }
 
   if (!isNotEmpty(contactId)) {
-    errors.push("Contact ID es requerido");
+    const msg = "Contact ID es requerido";
+    errors.push(msg);
+    fields.contactId = msg;
   }
 
   if (!isNotEmpty(locationId)) {
-    errors.push("Location ID es requerido");
+    const msg = "Location ID es requerido";
+    errors.push(msg);
+    fields.locationId = msg;
   }
 
   if (!isNotEmpty(emailTester)) {
-    errors.push("Email Tester es requerido");
+    const msg = "Email Tester es requerido";
+    errors.push(msg);
+    fields.emailTester = msg;
   } else if (!isValidEmail(emailTester)) {
-    errors.push("Email Tester debe ser un email válido");
+    const msg = "Email Tester debe ser un email válido";
+    errors.push(msg);
+    fields.emailTester = msg;
   }
 
   return {
     isValid: errors.length === 0,
     errors,
+    fields,
   };
 }

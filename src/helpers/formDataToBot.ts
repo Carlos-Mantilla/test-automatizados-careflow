@@ -2,7 +2,7 @@
  * Lógica para envío de datos del formulario al bot y respuesta del bot
  */
 
-import { validateForm } from "./validation";
+import { validateForm } from "./validationForm";
 import type { FormData, TestResult } from "@/types/types";
 
 /**

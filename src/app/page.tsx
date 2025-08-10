@@ -8,7 +8,7 @@ import { scrollToBottom, addChatMessage, addMultipleMessages, createTestingMessa
 import { formatDuration } from "@/helpers/timeUtils";
 import { testQuestionsData } from "@/data";
 import type { ChatMessage } from "@/types/types";
-import { validateForm } from "@/helpers/validation";
+import { validateForm } from "@/helpers/validationForm";
 import DynamicToolTip from "@/app/components/dynamicToolTip";
 
 // Este tipo se movió a chatUtils.ts - ya no es necesario aquí
@@ -19,6 +19,11 @@ export default function Home() {
   const [contactId, setContactId] = useState("");
   const [locationId, setLocationId] = useState("");
   const [emailTester, setEmailTester] = useState("");
+  // Errores por campo para resaltar UI
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<
+    "urlEasyPanel" | "contactId" | "locationId" | "emailTester",
+    string
+  >>>({});
 
   // Historial del chat
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -91,6 +96,8 @@ export default function Home() {
 
       // 3) Mensaje de finalización
       setMessages((prev) => addChatMessage(prev, "system", "Testeo masivo completado. Ver resumen más abajo. ✅"));
+      // 3.1) Detener/Resetear timer para que el botón vuelva a "INICIAR"
+      reset();
       // 4) Scroll controlado al resumen (asegura DOM actualizado)
       setTimeout(() => {
         if (summaryRef.current) {
@@ -101,6 +108,8 @@ export default function Home() {
     } catch (error) {
       console.error("Error en testeo masivo:", error);
       setMessages((prev) => addChatMessage(prev, "system", "Error en testeo masivo ❌"));
+      // Asegurar que el botón vuelva a INICIAR también en error
+      reset();
     }
   }
 
@@ -132,7 +141,7 @@ export default function Home() {
 
     if (!currentlyRunning) {
       // Validación previa de formulario para ambos modos
-      const { isValid, errors } = validateForm(
+      const { isValid, errors, fields } = validateForm(
         urlEasyPanel,
         contactId,
         locationId,
@@ -140,9 +149,11 @@ export default function Home() {
       );
 
       if (!isValid) {
+        setFieldErrors(fields);
         setMessages((prev) => addChatMessage(prev, "system", `Errores de validación ❌: ${errors.join(" | ")}`));
         return; // No iniciar timer ni testeo
       }
+      setFieldErrors({});
 
       // Limpiar chat para empezar en limpio
       setMessages([]);
@@ -191,45 +202,57 @@ export default function Home() {
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">URL EasyPanel</label>
             <input
-              className="h-10 rounded-md border border-black/10 dark:border-white/15 bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30"
+              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.urlEasyPanel ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
               placeholder="https://..."
               value={urlEasyPanel}
               onChange={(e) => setUrlEasyPanel(e.target.value)}
             />
+            {fieldErrors.urlEasyPanel && (
+              <span className="text-xs text-red-500">{fieldErrors.urlEasyPanel}</span>
+            )}
           </div>
 
           {/* Campo: ID del contacto */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Contact_ID</label>
+            <label className="text-sm font-medium">Contact ID (GHL)</label>
             <input
-              className="h-10 rounded-md border border-black/10 dark:border-white/15 bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30"
+              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.contactId ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
               placeholder="12345"
               value={contactId}
               onChange={(e) => setContactId(e.target.value)}
             />
+            {fieldErrors.contactId && (
+              <span className="text-xs text-red-500">{fieldErrors.contactId}</span>
+            )}
           </div>
 
           {/* Campo: ID de la ubicación */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Location_ID</label>
+            <label className="text-sm font-medium">Location ID (GHL)</label>
             <input
-              className="h-10 rounded-md border border-black/10 dark:border-white/15 bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30"
+              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.locationId ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
               placeholder="abc-001"
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
             />
+            {fieldErrors.locationId && (
+              <span className="text-xs text-red-500">{fieldErrors.locationId}</span>
+            )}
           </div>
 
           {/* Campo: Email del tester */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Email Tester</label>
             <input
-              className="h-10 rounded-md border border-black/10 dark:border-white/15 bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30"
+              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.emailTester ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
               placeholder="tester@dominio.com"
               type="email"
               value={emailTester}
               onChange={(e) => setEmailTester(e.target.value)}
             />
+            {fieldErrors.emailTester && (
+              <span className="text-xs text-red-500">{fieldErrors.emailTester}</span>
+            )}
           </div>
         </section>
 
@@ -341,6 +364,7 @@ export default function Home() {
             {/* Indicador de progreso del testeo masivo */}
             {isBatchMode && progress.total > 0 && (
               <div className="text-sm font-semibold text-gray-600 dark:text-yellow-400 flex items-center gap-2">
+                {/* Spinner de carga */}
                 {isBatchRunning && (
                   <span className="inline-block h-3 w-3 rounded-full border-2 border-yellow-400 border-t-transparent animate-spin" aria-label="cargando"></span>
                 )}
