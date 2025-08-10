@@ -203,7 +203,7 @@ export default function Home() {
             <label className="text-sm font-medium">URL EasyPanel</label>
             <input
               className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.urlEasyPanel ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
-              placeholder="https://..."
+              placeholder="https://n8n-gotiger-bot-esdras..."
               value={urlEasyPanel}
               onChange={(e) => setUrlEasyPanel(e.target.value)}
             />
@@ -217,7 +217,7 @@ export default function Home() {
             <label className="text-sm font-medium">Contact ID (GHL)</label>
             <input
               className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.contactId ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
-              placeholder="12345"
+              placeholder="3oLF4VLMplbFH0fQmgKF"
               value={contactId}
               onChange={(e) => setContactId(e.target.value)}
             />
@@ -231,7 +231,7 @@ export default function Home() {
             <label className="text-sm font-medium">Location ID (GHL)</label>
             <input
               className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.locationId ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
-              placeholder="abc-001"
+              placeholder="odQon2KjVfTD1ubFdwBK"
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
             />
@@ -245,7 +245,7 @@ export default function Home() {
             <label className="text-sm font-medium">Email Tester</label>
             <input
               className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.emailTester ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
-              placeholder="tester@dominio.com"
+              placeholder="sergiog@starassistants.com"
               type="email"
               value={emailTester}
               onChange={(e) => setEmailTester(e.target.value)}
