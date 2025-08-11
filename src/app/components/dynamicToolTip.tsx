@@ -22,7 +22,7 @@ const tooltipLines: string[] = Object.entries(categoryStats).map(
 
 export default function DynamicToolTip() {
     return (
-        <div className="relative group inline-block animate-pulse ">
+        <div className="relative group inline-block animate-pulse">
             <button className="cursor-help flex">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

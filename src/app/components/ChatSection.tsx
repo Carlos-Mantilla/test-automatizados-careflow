@@ -33,23 +33,21 @@ export default function ChatSection(props: ChatSectionProps) {
           messages.map((m, i) => (
             <div
               key={i}
-              className={`text-sm leading-6 p-1.5 rounded-lg ${
-                m.role === "user"
-                  ? "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500"
-                  : m.role === "system"
-                    ? "bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500"
-                    : "bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500"
-              }`}
+              className={`text-sm leading-6 p-1.5 rounded-lg ${m.role === "user"
+                ? "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500"
+                : m.role === "system"
+                  ? "bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500"
+                  : "bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500"
+                }`}
             >
               <div className="flex items-baseline justify-between">
                 <span
-                  className={`font-semibold ${
-                    m.role === "user"
-                      ? "text-blue-900 dark:text-blue-300"
-                      : m.role === "system"
-                        ? "text-yellow-700 dark:text-yellow-300"
-                        : "text-green-700 dark:text-green-300"
-                  }`}
+                  className={`font-semibold ${m.role === "user"
+                    ? "text-blue-900 dark:text-blue-300"
+                    : m.role === "system"
+                      ? "text-yellow-700 dark:text-yellow-300"
+                      : "text-green-700 dark:text-green-300"
+                    }`}
                 >
                   {m.role === "user" ? "Tú: " : m.role === "system" ? "Sistema 🚨: " : "Bot 🤖: "}
                 </span>
@@ -85,14 +83,13 @@ export default function ChatSection(props: ChatSectionProps) {
       </div>
 
       {/* Progreso */}
-      <section className="flex items-center justify-between border border-black/10 dark:border-white/15 rounded-lg p-4">
-        <div className="flex items-center gap-1">
-          <span className="text-sm font-medium">Total: <span className="text-blue-400 font-bold">{progressTotal}</span>,  Tipos:</span>
-          <DynamicToolTip />
+      <section className="flex items-center justify-center gap-x-6 border border-black/10 dark:border-white/15 rounded-lg p-2 text-gray-600 dark:text-yellow-400 text-sm font-semibold">
+        <div className="flex items-center gap-x-1">
+          Tipos:<DynamicToolTip />
         </div>
 
         {progressTotal > 0 && (
-          <div className="text-sm font-semibold text-gray-600 dark:text-yellow-400 flex items-center gap-2">
+          <div className="flex items-center gap-2">
             {isBatchRunning && (
               <span className="inline-block h-3 w-3 rounded-full border-2 border-yellow-400 border-t-transparent animate-spin" aria-label="cargando"></span>
             )}

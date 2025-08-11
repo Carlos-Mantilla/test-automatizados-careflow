@@ -24,7 +24,7 @@ export default function SummarySection({ summary, summaryRef }: SummarySectionPr
 
   return (
     <section ref={summaryRef as RefObject<HTMLDivElement>} className="border border-black/10 dark:border-white/15 rounded-lg p-4">
-      <h3 className="text-lg font-semibold mb-4">📊 Resumen del Test</h3>
+      <h3 className="text-lg font-semibold mb-4">📊 Llamadas realizadas al bot</h3>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">

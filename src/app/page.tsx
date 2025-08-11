@@ -112,7 +112,7 @@ export default function Home() {
 
         {/* ==================== HEADER ==================== */}
         <header className="flex items-center justify-between">
-          <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight mx-auto">
             Testeo Automático Bots
           </h1>
         </header>

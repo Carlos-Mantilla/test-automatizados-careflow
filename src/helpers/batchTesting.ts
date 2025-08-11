@@ -7,6 +7,7 @@ import type {
   TestQuestion,
   QuestionTestResult,
   BatchTestProgress,
+  ChatMessage,
 } from "@/types/types";
 
 /**
@@ -45,8 +46,31 @@ async function testSingleQuestion(
 
     const data = await response.json();
 
-    // Extraer la respuesta del bot
+    // Extraer la respuesta del bot de EasyPanel
     const actualResponse = data?.data?.respuesta || "Sin respuesta del bot";
+
+    // Enviar a OpenAI (arbiterAgent) la respuesta bot de EasyPanel + Pregunta + Respuesta esperada
+    try {
+      const arbiterMessages: ChatMessage[] = [
+        { role: "user", content: `Pregunta: ${question.question}` },
+        { role: "user", content: `Respuesta del bot: ${actualResponse}` },
+        {
+          role: "user",
+          content: `Respuesta esperada: ${question.expected_response}`,
+        },
+      ];
+
+      const arbiterRes = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: arbiterMessages }),
+      });
+      const arbiterJson = await arbiterRes.json();
+      console.log("Respuesta de arbiter", arbiterJson);
+      
+    } catch (arbiterErr) {
+      console.error("Error llamando a arbiter (OpenAI):", arbiterErr);
+    }
 
     return {
       questionId: question.id,
@@ -128,7 +152,7 @@ export async function runBatchTesting(
     // Delay entre preguntas (excepto en la última)
     if (i < questions.length - 1) {
       await new Promise((resolve) => setTimeout(resolve, delayMs));
-      
+
       // Verificar nuevamente después del delay si se debe detener
       if (shouldStop()) {
         onProgress({
@@ -162,12 +186,16 @@ export async function runBatchTesting(
  * @param totalPlanned - Total de preguntas planeadas (opcional, para testeos interrumpidos)
  * @returns Resumen con estadísticas
  */
-export function createBatchTestSummary(results: QuestionTestResult[], totalPlanned?: number) {
+export function createBatchTestSummary(
+  results: QuestionTestResult[],
+  totalPlanned?: number
+) {
   const completed = results.length;
   const successful = results.filter((r) => r.success).length;
   const failed = completed - successful;
   const total = totalPlanned || completed; // Usar total planeado si se proporciona
-  const successRate = completed > 0 ? Math.round((successful / completed) * 100) : 0;
+  const successRate =
+    completed > 0 ? Math.round((successful / completed) * 100) : 0;
 
   const categoryCounts = results.reduce((acc, result) => {
     // Extraer categoría del ID (ej: "KG-01" -> "KG")
