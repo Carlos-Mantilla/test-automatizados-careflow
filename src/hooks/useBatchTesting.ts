@@ -1,5 +1,8 @@
 /**
- * Hook personalizado para testeo masivo de preguntas
+ * Hook personalizado para Testeo automático de preguntas
+ * useBatchTesting: motor de testeo y estado.
+ * Expone progreso, summary, isRunning.
+ * Ejecuta runBatchTesting, maneja stop/reset y calcula el resumen.
  */
 
 import { useState, useCallback, useRef } from "react";
@@ -11,68 +14,72 @@ export function useBatchTesting() {
     current: 0,
     total: 0,
     completed: [],
-    isRunning: false
+    isRunning: false,
   });
 
-  const [summary, setSummary] = useState<ReturnType<typeof createBatchTestSummary> | null>(null);
+  const [summary, setSummary] = useState<ReturnType<
+    typeof createBatchTestSummary
+  > | null>(null);
   const shouldStopRef = useRef(false);
 
   /**
-   * Ejecuta el testeo masivo
+   * Ejecuta el Testeo automático
    */
-  const executeBatchTest = useCallback(async (
-    questions: TestQuestion[],
-    formData: FormData,
-    delayMs?: number
-  ) => {
-    try {
-      // Resetear estado
-      setSummary(null);
-      shouldStopRef.current = false;
-      
-      // Ejecutar testeo con callback de progreso
-      const results = await runBatchTesting(
-        questions,
-        formData,
-        setProgress,
-        () => shouldStopRef.current, // Función que verifica si se debe parar
-        delayMs
-      );
+  const executeBatchTest = useCallback(
+    async (questions: TestQuestion[], formData: FormData, delayMs?: number) => {
+      try {
+        // Resetear estado
+        setSummary(null);
+        shouldStopRef.current = false;
 
-      // Crear resumen final (incluso si se detuvo antes)
-      const finalSummary = createBatchTestSummary(results, questions.length);
-      setSummary(finalSummary);
+        // Ejecutar testeo con callback de progreso
+        const results = await runBatchTesting(
+          questions,
+          formData,
+          setProgress,
+          () => shouldStopRef.current, // Función que verifica si se debe parar
+          delayMs
+        );
 
-      return results;
-    } catch (error) {
-      console.error("Error en testeo masivo:", error);
-      
-      // Marcar como no corriendo en caso de error
-      setProgress(prev => ({ ...prev, isRunning: false }));
-      
-      throw error;
-    }
-  }, []);
+        // Crear resumen final (incluso si se detuvo antes)
+        const finalSummary = createBatchTestSummary(results, questions.length);
+        setSummary(finalSummary);
+
+        return results;
+      } catch (error) {
+        console.error("Error en Testeo automático:", error);
+
+        // Marcar como no corriendo en caso de error
+        setProgress((prev) => ({ ...prev, isRunning: false }));
+
+        throw error;
+      }
+    },
+    []
+  );
 
   /**
-   * Detiene el testeo masivo en progreso
+   * Detiene el Testeo automático en progreso
    */
   const stopBatchTest = useCallback(() => {
     shouldStopRef.current = true;
-    
+
     // Marcar inmediatamente como no corriendo
-    setProgress(prev => ({ ...prev, isRunning: false }));
-    
+    setProgress((prev) => ({ ...prev, isRunning: false }));
+
     // Crear resumen parcial y corregir progreso tras detener
     setTimeout(() => {
-      setProgress(prev => {
+      setProgress((prev) => {
         const updated = {
           ...prev,
           current: prev.completed.length, // asegurar progreso correcto
-          isRunning: false
+          isRunning: false,
         };
         if (prev.completed.length > 0) {
-          const partialSummary = createBatchTestSummary(prev.completed, prev.total);
+          const partialSummary = createBatchTestSummary(
+            prev.completed,
+            prev.total
+          );
           setSummary(partialSummary);
         }
         return updated;
@@ -81,7 +88,7 @@ export function useBatchTesting() {
   }, []);
 
   /**
-   * Resetea el estado del testeo masivo
+   * Resetea el estado del Testeo automático
    */
   const resetBatchTest = useCallback(() => {
     shouldStopRef.current = false;
@@ -89,7 +96,7 @@ export function useBatchTesting() {
       current: 0,
       total: 0,
       completed: [],
-      isRunning: false
+      isRunning: false,
     });
     setSummary(null);
   }, []);
@@ -101,6 +108,6 @@ export function useBatchTesting() {
     stopBatchTest,
     resetBatchTest,
     isRunning: progress.isRunning,
-    hasResults: progress.completed.length > 0
+    hasResults: progress.completed.length > 0,
   };
 }

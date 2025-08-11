@@ -7,7 +7,7 @@ export const openai = new OpenAI({
 });
 
 // messages viene de una variable externa (pásala tal cual)
-export async function chatComplete(messages: ChatMessage[]) {
+export async function arbiterAgent(messages: ChatMessage[]) {
   const res = await openai.responses.create({
     model: "gpt-4o-mini", // usa el modelo que prefieras
     input: messages, // <— multi-turn nativo (sin .map/.join)

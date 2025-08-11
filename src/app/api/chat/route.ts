@@ -1,4 +1,5 @@
-import { chatComplete, ChatMessage } from "@/lib/openai";
+import { arbiterAgent } from "@/lib/openai";
+import type { ChatMessage } from "@/types/types";
 
 export async function POST(req: Request) {
   try {
@@ -6,7 +7,7 @@ export async function POST(req: Request) {
     if (!Array.isArray(messages)) {
       return Response.json({ error: "messages inválido" }, { status: 400 });
     }
-    const reply = await chatComplete(messages);
+    const reply = await arbiterAgent(messages);
     return Response.json({ message: reply });
   } catch (err) {
     console.error("Error /api/chat:", err);
