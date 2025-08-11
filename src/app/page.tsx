@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTimer } from "@/hooks/useTimer";
-import { useBotTesting } from "@/hooks/useBotTesting";
 import { useBatchTesting } from "@/hooks/useBatchTesting";
-import { scrollToBottom, addChatMessage, addMultipleMessages, createTestingMessages } from "@/helpers/chatUtils";
+import { scrollToBottom, addChatMessage } from "@/helpers/chatUtils";
 import { formatDuration } from "@/helpers/timeUtils";
 import { testQuestionsData } from "@/data";
 import type { ChatMessage } from "@/types/types";
@@ -28,12 +27,10 @@ export default function Home() {
   // Historial del chat
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  // Modo de testeo: individual vs masivo
-  const [isBatchMode, setIsBatchMode] = useState(true);
+
 
   // Custom hooks
   const { isRunning, formattedTime, start, reset, cleanup } = useTimer();
-  const { executeTest } = useBotTesting();
   const { progress, summary, executeBatchTest, resetBatchTest, stopBatchTest, isRunning: isBatchRunning } = useBatchTesting();
 
   // Referencias para scroll automático
@@ -57,28 +54,7 @@ export default function Home() {
   }, [cleanup]);
 
 
-  // Maneja el proceso de testeo individual
-  async function handleformDataToBot() {
-    // 1) Mensaje de inicio
-    setMessages((prev) => addChatMessage(prev, "system", "Iniciando testeo individual..."));
 
-    // 2) Ejecutar testeo usando el hook
-    const result = await executeTest({
-      urlEasyPanel,
-      contactId,
-      locationId,
-      emailTester,
-    });
-
-    // 3) Agregar todos los mensajes resultado del testeo
-    const testingMessages = createTestingMessages(result);
-    setMessages((prev) => addMultipleMessages(prev, testingMessages));
-
-    // 4) Log para debugging
-    if (result.botResponse) {
-      console.log("Respuesta del bot (completa):", result.botResponse);
-    }
-  }
 
   // Maneja el proceso de testeo masivo
   async function handleBatchTesting() {
@@ -115,7 +91,6 @@ export default function Home() {
 
   // Efecto para mostrar preguntas y respuestas en tiempo real durante testeo masivo
   useEffect(() => {
-    if (!isBatchMode) return;
     const count = progress.completed.length;
     if (count === 0) return;
     // Evitar duplicados: solo procesar cuando aumenta el número de completadas
@@ -131,7 +106,7 @@ export default function Home() {
     ]);
 
     lastRenderedCountRef.current = count;
-  }, [progress.completed, isBatchMode, progress.total]);
+  }, [progress.completed, progress.total]);
 
 
 
@@ -163,12 +138,8 @@ export default function Home() {
       resetBatchTest(); // resetear testeo masivo
       start(); // iniciar timer
 
-      // Ejecutar el tipo de testeo según el modo
-      if (isBatchMode) {
-        void handleBatchTesting(); // testeo masivo
-      } else {
-        void handleformDataToBot(); // testeo individual
-      }
+      // Ejecutar testeo masivo
+      void handleBatchTesting();
       return;
     }
 
@@ -200,58 +171,58 @@ export default function Home() {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Campo: URL del endpoint del bot */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">URL EasyPanel</label>
+            <label className="text-sm font-semibold">🔗 URL EasyPanel</label>
             <input
-              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.urlEasyPanel ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
+              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 text-gray-400 ${fieldErrors.urlEasyPanel ? "border-red-700" : "border-black/10 dark:border-white/15"}`}
               placeholder="https://n8n-gotiger-bot-esdras..."
               value={urlEasyPanel}
               onChange={(e) => setUrlEasyPanel(e.target.value)}
             />
             {fieldErrors.urlEasyPanel && (
-              <span className="text-xs text-red-500">{fieldErrors.urlEasyPanel}</span>
+              <span className="text-xs text-red-700">{fieldErrors.urlEasyPanel}</span>
             )}
           </div>
 
           {/* Campo: ID del contacto */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Contact ID (GHL)</label>
+            <label className="text-sm font-semibold">👤 Contact ID (GHL)</label>
             <input
-              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.contactId ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
+              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 text-gray-400 ${fieldErrors.contactId ? "border-red-700" : "border-black/10 dark:border-white/15"}`}
               placeholder="3oLF4VLMplbFH0fQmgKF"
               value={contactId}
               onChange={(e) => setContactId(e.target.value)}
             />
             {fieldErrors.contactId && (
-              <span className="text-xs text-red-500">{fieldErrors.contactId}</span>
+              <span className="text-xs text-red-700">{fieldErrors.contactId}</span>
             )}
           </div>
 
           {/* Campo: ID de la ubicación */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Location ID (GHL)</label>
+            <label className="text-sm font-semibold">📍 Location ID (GHL)</label>
             <input
-              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.locationId ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
+              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 text-gray-400 ${fieldErrors.locationId ? "border-red-700" : "border-black/10 dark:border-white/15"}`}
               placeholder="odQon2KjVfTD1ubFdwBK"
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
             />
             {fieldErrors.locationId && (
-              <span className="text-xs text-red-500">{fieldErrors.locationId}</span>
+              <span className="text-xs text-red-700">{fieldErrors.locationId}</span>
             )}
           </div>
 
           {/* Campo: Email del tester */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Email Tester</label>
+            <label className="text-sm font-semibold">✉️ Email Tester</label>
             <input
-              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 ${fieldErrors.emailTester ? "border-red-500" : "border-black/10 dark:border-white/15"}`}
+              className={`h-10 rounded-md border bg-transparent px-3 outline-none focus:ring-2 focus:ring-foreground/30 text-gray-400 ${fieldErrors.emailTester ? "border-red-700" : "border-black/10 dark:border-white/15"}`}
               placeholder="sergiog@starassistants.com"
               type="email"
               value={emailTester}
               onChange={(e) => setEmailTester(e.target.value)}
             />
             {fieldErrors.emailTester && (
-              <span className="text-xs text-red-500">{fieldErrors.emailTester}</span>
+              <span className="text-xs text-red-700">{fieldErrors.emailTester}</span>
             )}
           </div>
         </section>
@@ -327,42 +298,16 @@ export default function Home() {
 
           {/* ==================== CONTROLES DEL CHAT ==================== */}
 
-          {/* Selector de modo de testeo */}
+          {/* Indicador de progreso del testeo masivo */}
           <section className="flex items-center justify-between border border-black/10 dark:border-white/15 rounded-lg p-4">
-            {/* Opciones de radio para elegir tipo de testeo */}
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">Modo de testeo:</span>
-
-              {/* Opción: Testeo masivo */}
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="testMode"
-                  checked={isBatchMode}
-                  onChange={() => setIsBatchMode(true)}
-                  className="text-blue-600"
-                />
-                <span className="text-sm">Masivo ({testQuestionsData.length} preguntas)</span>
-              </label>
-
-              {/* Opción: Testeo individual */}
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="testMode"
-                  checked={!isBatchMode}
-                  onChange={() => setIsBatchMode(false)}
-                  className="text-blue-600"
-                />
-                <span className="text-sm">Individual (1 mensaje)</span>
-              </label>
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-medium">Total: <span className="text-blue-400 font-bold">{testQuestionsData.length}</span>,  Tipos:</span>
               {/* Tooltip con icono de información */}
               <DynamicToolTip />
             </div>
 
-
             {/* Indicador de progreso del testeo masivo */}
-            {isBatchMode && progress.total > 0 && (
+            {progress.total > 0 && (
               <div className="text-sm font-semibold text-gray-600 dark:text-yellow-400 flex items-center gap-2">
                 {/* Spinner de carga */}
                 {isBatchRunning && (
@@ -402,7 +347,7 @@ export default function Home() {
         {/* ==================== ESTADÍSTICAS ==================== */}
 
         {/* Panel de resumen del testeo masivo */}
-        {isBatchMode && summary && (
+        {summary && (
           <section ref={summaryRef} className="border border-black/10 dark:border-white/15 rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">📊 Resumen del Test</h3>
 
