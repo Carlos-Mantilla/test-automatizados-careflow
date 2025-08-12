@@ -3,7 +3,7 @@
  */
 
 import type {
-  FormData,
+  TestFormData,
   TestQuestion,
   QuestionTestResult,
   BatchTestProgress,
@@ -13,24 +13,18 @@ import type {
 /**
  * Envía una pregunta individual al bot y obtiene la respuesta
  * @param question - Pregunta a enviar
- * @param formData - Datos del formulario (URL, IDs, etc.)
+ * @param TestFormData - Datos del formulario (URL, IDs, etc.)
  * @returns Resultado del testeo de la pregunta
  */
 async function testSingleQuestion(
   question: TestQuestion,
-  formData: FormData
+  TestFormData: TestFormData
 ): Promise<QuestionTestResult> {
   try {
-    // Crear una copia del formData pero con la pregunta como messageBody
+    // Crear una copia del TestFormData pero con la pregunta como messageBody
     const testData = {
-      ...formData,
+      ...TestFormData,
       // La pregunta va en el messageBody que se construye en el API
-    };
-
-    // Modificar temporalmente el emailTester para incluir el ID de la pregunta
-    const modifiedFormData = {
-      ...testData,
-      emailTester: `${formData.emailTester} - Test ID: ${question.id}`,
     };
 
     // Enviar al API con la pregunta en el payload
@@ -38,7 +32,7 @@ async function testSingleQuestion(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        ...modifiedFormData,
+        ...testData,
         // Agregar la pregunta específica
         testQuestion: question.question,
       }),
@@ -50,6 +44,7 @@ async function testSingleQuestion(
     const actualResponse = data?.data?.respuesta || "Sin respuesta del bot";
 
     // Enviar a OpenAI (arbiterAgent) la respuesta bot de EasyPanel + Pregunta + Respuesta esperada
+    let arbiterVerdict: "0" | "1" | undefined;
     try {
       const arbiterMessages: ChatMessage[] = [
         { role: "user", content: `Pregunta: ${question.question}` },
@@ -66,8 +61,11 @@ async function testSingleQuestion(
         body: JSON.stringify({ messages: arbiterMessages }),
       });
       const arbiterJson = await arbiterRes.json();
-      console.log("Respuesta de arbiter", arbiterJson);
-      
+      const verdictRaw: string = arbiterJson?.message?.content ?? "";
+      const onlyDigit = verdictRaw.trim().match(/^[012]/)?.[0];
+      if (onlyDigit === "0" || onlyDigit === "1") {
+        arbiterVerdict = onlyDigit;
+      }
     } catch (arbiterErr) {
       console.error("Error llamando a arbiter (OpenAI):", arbiterErr);
     }
@@ -78,6 +76,7 @@ async function testSingleQuestion(
       expectedResponse: question.expected_response,
       actualResponse,
       success: data.ok,
+      arbiterVerdict,
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
@@ -96,7 +95,7 @@ async function testSingleQuestion(
 /**
  * Ejecuta testeo masivo de todas las preguntas
  * @param questions - Array de preguntas a testear
- * @param formData - Datos del formulario
+ * @param TestFormData - Datos del formulario
  * @param onProgress - Callback para reportar progreso
  * @param shouldStop - Función que retorna true si se debe detener el testeo
  * @param delayMs - Delay entre preguntas en millisegundos (default: 2000ms)
@@ -104,7 +103,7 @@ async function testSingleQuestion(
  */
 export async function runBatchTesting(
   questions: TestQuestion[],
-  formData: FormData,
+  TestFormData: TestFormData,
   onProgress: (progress: BatchTestProgress) => void,
   shouldStop: () => boolean,
   delayMs: number = 2000
@@ -138,7 +137,7 @@ export async function runBatchTesting(
     const question = questions[i];
 
     // Testear la pregunta actual
-    const result = await testSingleQuestion(question, formData);
+    const result = await testSingleQuestion(question, TestFormData);
     results.push(result);
 
     // Reportar progreso
@@ -190,12 +189,24 @@ export function createBatchTestSummary(
   results: QuestionTestResult[],
   totalPlanned?: number
 ) {
+  // Métricas de llamadas a EasyPanel
   const completed = results.length;
   const successful = results.filter((r) => r.success).length;
   const failed = completed - successful;
   const total = totalPlanned || completed; // Usar total planeado si se proporciona
   const successRate =
     completed > 0 ? Math.round((successful / completed) * 100) : 0;
+
+  // Métricas por veredicto del árbitro
+  const arbiterCorrect = results.filter((r) => r.arbiterVerdict === "1").length;
+  const arbiterIncorrect = results.filter(
+    (r) => r.arbiterVerdict === "0"
+  ).length;
+  const arbiterDecided = arbiterCorrect + arbiterIncorrect;
+  const arbiterSuccessRate =
+    arbiterDecided > 0
+      ? Math.round((arbiterCorrect / arbiterDecided) * 100)
+      : 0;
 
   const categoryCounts = results.reduce((acc, result) => {
     // Extraer categoría del ID (ej: "KG-01" -> "KG")
@@ -205,11 +216,17 @@ export function createBatchTestSummary(
   }, {} as Record<string, number>);
 
   return {
+    // Metricas de llamadas a EasyPanel
     total,
     completed,
     successful,
     failed,
     successRate,
+    // Veredicto del árbitro
+    arbiterCorrect,
+    arbiterIncorrect,
+    arbiterDecided,
+    arbiterSuccessRate,
     categoryCounts,
     duration:
       results.length > 0

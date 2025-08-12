@@ -6,14 +6,14 @@ export interface ChatMessage {
   content: string;
   expectedResponse?: string; // Para testeo masivo: respuesta esperada del bot
   timestamp?: string; // Hora local en la que se añadió el mensaje
+  arbiterVerdict?: "0" | "1"; // Veredicto del árbitro para mensajes del bot
 }
 
 // Datos del formulario principal de testeo
-export interface FormData {
+export interface TestFormData {
   urlEasyPanel: string;
   contactId: string;
   locationId: string;
-  emailTester: string;
 }
 
 
@@ -34,6 +34,7 @@ export interface QuestionTestResult {
   expectedResponse: string;
   actualResponse: string;
   success: boolean;
+  arbiterVerdict?: "0" | "1" ; // 0 = incorrecto, 1 = correcto
   timestamp: string;
 }
 

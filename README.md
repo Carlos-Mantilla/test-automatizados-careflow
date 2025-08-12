@@ -1,16 +1,14 @@
-## Getting Started
-
-First, run the development server:
+## Auto Testing
+# CODA:
+https://coda.io/d/Bot-a-Codigo_dn7DgO8MuEN/Automatizacion-de-Testeos_suVCA9Bn#_lur9eM2t
 
 ```bash
+npm install
+# and
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
+
+# Data real para probar el form (gliohealth client)
 ### url
 https://n8n-gotiger-bot-esdras-gliobot.fevig1.easypanel.host/gliohealth
 
@@ -19,5 +17,3 @@ https://n8n-gotiger-bot-esdras-gliobot.fevig1.easypanel.host/gliohealth
 
 ### Location ID
 odQon2KjVfTD1ubFdwBK
-
-test@tester.com

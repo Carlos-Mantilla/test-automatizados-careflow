@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { runBatchTesting, createBatchTestSummary } from "@/helpers/batchTesting";
-import type { FormData, TestQuestion, BatchTestProgress } from "@/types/types";
+import type { TestFormData, TestQuestion, BatchTestProgress } from "@/types/types";
 
 export function useBatchTesting() {
   const [progress, setProgress] = useState<BatchTestProgress>({
@@ -26,7 +26,7 @@ export function useBatchTesting() {
    * Ejecuta el Testeo automático
    */
   const executeBatchTest = useCallback(
-    async (questions: TestQuestion[], formData: FormData, delayMs?: number) => {
+    async (questions: TestQuestion[], TestFormData: TestFormData, delayMs?: number) => {
       try {
         // Resetear estado
         setSummary(null);
@@ -35,7 +35,7 @@ export function useBatchTesting() {
         // Ejecutar testeo con callback de progreso
         const results = await runBatchTesting(
           questions,
-          formData,
+          TestFormData,
           setProgress,
           () => shouldStopRef.current, // Función que verifica si se debe parar
           delayMs

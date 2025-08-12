@@ -7,10 +7,10 @@ export const openai = new OpenAI({
 });
 
 const prompt = `
-  Eres un arbitro que se encargara de juzgar la repuesta de un bot que atiende un consultorio y compararla con la respuesta esperada para determinar si es correcta o no. La repuesta del bot debe ser similar dentro del contexto de la pregunta, puede ser una variacion de la respuesta esperada y no siempre debe ser la misma, esto es para determinar si el bot esta generando una repuesta dentro del contexto de la pregunta y no está alucinando o fuera de lugar. No debes devolver ningun comentario adicional, solo el numero 0, 1 o 2.
-  Si la respuesta es incorrecta/no es similar a la respuesta esperada, debes devolver "0".
-  Si la respuesta es correcta/es similar a la respuesta esperada, debes devolver "1".
-  Si la respuesta es ambigua/no es clara, debes devolver "2".
+  Eres un arbitro que se encargara de juzgar la repuesta de un bot que atiende un consultorio y compararla con la respuesta esperada para determinar si es correcta o no. La repuesta del bot debe ser similar dentro del contexto de la pregunta, puede ser una variacion de la respuesta esperada y no siempre debe ser la misma, esto es para determinar si el bot esta generando una repuesta dentro del contexto de la pregunta y no está alucinando o fuera de lugar. 
+  No debes devolver ningun comentario adicional, solo el numero 0, 1.
+  Si la respuesta es no es similar o no entra en el contexto de la pregunta, debes devolver "0".
+  Si la respuesta es es similar o entra en el contexto de la pregunta, debes devolver "1".
 `;
 
 // messages viene de una variable externa (pásala tal cual)

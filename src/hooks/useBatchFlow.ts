@@ -7,13 +7,13 @@
 */
 
 import { useCallback } from "react";
-import type { ChatMessage, FormData, TestQuestion, QuestionTestResult } from "@/types/types";
+import type { ChatMessage, TestFormData, TestQuestion, QuestionTestResult } from "@/types/types";
 import { addChatMessage } from "@/helpers/chatUtils";
 
 interface UseBatchFlowDeps {
   executeBatchTest: (
     questions: TestQuestion[],
-    formData: FormData,
+    TestFormData: TestFormData,
     delayMs?: number
   ) => Promise<QuestionTestResult[]>;
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
@@ -23,13 +23,13 @@ interface UseBatchFlowDeps {
 }
 
 export function useBatchFlow({ executeBatchTest, setMessages, summaryRef, resetTimer, testQuestions }: UseBatchFlowDeps) {
-  const startBatch = useCallback(async (formData: FormData) => {
+  const startBatch = useCallback(async (TestFormData: TestFormData) => {
     // 1) Mensaje de inicio
     setMessages(prev => addChatMessage(prev, "system", `Iniciando testeo automático: ${testQuestions.length} preguntas...`));
 
     try {
       // 2) Ejecutar Testeo automático
-      await executeBatchTest(testQuestions, formData);
+      await executeBatchTest(testQuestions, TestFormData);
 
       // 3) Mensaje de finalización
       setMessages(prev => addChatMessage(prev, "system", "Testeo automático completado. Ver resumen más abajo. ✅"));

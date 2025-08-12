@@ -17,16 +17,6 @@ export function isValidUrl(url: string): boolean {
 }
 
 /**
- * Valida si una cadena es un email válido
- * @param email - Cadena email a validar
- * @returns True si es email válido, false en caso contrario
- */
-export function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-/**
  * Valida si una cadena no está vacía
  * @param value - Cadena a validar
  * @returns True si no está vacía, false en caso contrario
@@ -40,22 +30,20 @@ export function isNotEmpty(value: string): boolean {
  * @param urlEasyPanel - Valor del input URL
  * @param contactId - Valor del input Contact ID
  * @param locationId - Valor del input Location ID
- * @param emailTester - Valor del input Email
  * @returns Objeto con resultados de validación
  */
 export function validateForm(
   urlEasyPanel: string,
   contactId: string,
-  locationId: string,
-  emailTester: string
+  locationId: string
 ): {
   isValid: boolean;
   errors: string[];
-  fields: Partial<Record<"urlEasyPanel" | "contactId" | "locationId" | "emailTester", string>>;
+  fields: Partial<Record<"urlEasyPanel" | "contactId" | "locationId", string>>;
 } {
   const errors: string[] = [];
   const fields: Partial<Record<
-    "urlEasyPanel" | "contactId" | "locationId" | "emailTester",
+    "urlEasyPanel" | "contactId" | "locationId",
     string
   >> = {};
 
@@ -79,16 +67,6 @@ export function validateForm(
     const msg = "Location ID es requerido";
     errors.push(msg);
     fields.locationId = msg;
-  }
-
-  if (!isNotEmpty(emailTester)) {
-    const msg = "Email Tester es requerido";
-    errors.push(msg);
-    fields.emailTester = msg;
-  } else if (!isValidEmail(emailTester)) {
-    const msg = "Email Tester debe ser un email válido";
-    errors.push(msg);
-    fields.emailTester = msg;
   }
 
   return {

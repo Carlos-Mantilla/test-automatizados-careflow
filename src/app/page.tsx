@@ -19,7 +19,6 @@ export default function Home() {
   const [urlEasyPanel, setUrlEasyPanel] = useState("");
   const [contactId, setContactId] = useState("");
   const [locationId, setLocationId] = useState("");
-  const [emailTester, setEmailTester] = useState("");
   // Validación (errores por campo)
   const { fieldErrors, validate, clearErrors } = useFormValidation();
 
@@ -63,7 +62,7 @@ export default function Home() {
     setMessages((prev) => [
       ...prev,
       { role: "user", content: `[${lastResult.questionId}] ${lastResult.question}`, timestamp: now },
-      { role: "assistant", content: lastResult.actualResponse, expectedResponse: lastResult.expectedResponse, timestamp: now }
+      { role: "assistant", content: lastResult.actualResponse, expectedResponse: lastResult.expectedResponse, timestamp: now, arbiterVerdict: lastResult.arbiterVerdict }
     ]);
 
     lastRenderedCountRef.current = count;
@@ -75,7 +74,7 @@ export default function Home() {
 
     if (!currentlyRunning) {
       // Validación previa del formulario
-      const { isValid, errors } = validate({ urlEasyPanel, contactId, locationId, emailTester });
+      const { isValid, errors } = validate({ urlEasyPanel, contactId, locationId });
       if (!isValid) {
         setMessages((prev) => addChatMessage(prev, "system", `Errores de validación ❌: ${errors.join(" | ")}`));
         return; // No iniciar timer ni testeo
@@ -91,7 +90,7 @@ export default function Home() {
       start(); // iniciar timer
 
       // Ejecutar Testeo automático
-      void startBatch({ urlEasyPanel, contactId, locationId, emailTester });
+      void startBatch({ urlEasyPanel, contactId, locationId });
       return;
     }
 
@@ -122,13 +121,11 @@ export default function Home() {
           urlEasyPanel={urlEasyPanel}
           contactId={contactId}
           locationId={locationId}
-          emailTester={emailTester}
           fieldErrors={fieldErrors}
           onChange={(field, value) => {
             if (field === "urlEasyPanel") setUrlEasyPanel(value);
             if (field === "contactId") setContactId(value);
             if (field === "locationId") setLocationId(value);
-            if (field === "emailTester") setEmailTester(value);
           }}
         />
 
@@ -144,7 +141,12 @@ export default function Home() {
         />
 
         {/* ==================== ESTADÍSTICAS ==================== */}
-        <SummarySection summary={summary} summaryRef={summaryRef} />
+        <SummarySection 
+        summary={summary} 
+        summaryRef={summaryRef} 
+        results={progress.completed} 
+        testFormData={{urlEasyPanel, contactId, locationId}}
+        />
       </section>
     </main>
   );

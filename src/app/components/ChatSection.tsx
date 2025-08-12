@@ -49,11 +49,17 @@ export default function ChatSection(props: ChatSectionProps) {
                       : "text-green-700 dark:text-green-300"
                     }`}
                 >
-                  {m.role === "user" ? "Tú: " : m.role === "system" ? "Sistema 🚨: " : "Bot 🤖: "}
+                  {m.role === "user" ? "Tú: " : m.role === "system" ? "Sistema 🚨: " : "Bot EasyPanel 🤖: "}
                 </span>
+
                 {m.timestamp && (
-                  <span className="text-[10px] italic opacity-70">{m.timestamp}</span>
+
+                  <span className="text-[10px] italic opacity-70">
+                    {m.timestamp}
+
+                  </span>
                 )}
+
               </div>
 
               <div
@@ -68,8 +74,11 @@ export default function ChatSection(props: ChatSectionProps) {
                 <div>{m.content}</div>
                 {m.expectedResponse && (
                   <details className="mt-2">
-                    <summary className="cursor-pointer text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-                      Ver respuesta esperada
+                    <summary className="cursor-pointer text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 flex justify-between items-center">
+                      <span>Ver respuesta esperada</span>
+                      {/* Verificar si el mensaje es del bot y si tiene un verdicto */}
+                      {m.role === "assistant" && m.arbiterVerdict === "0" && <span className="not-italic text-2xl">❌</span>}
+                      {m.role === "assistant" && m.arbiterVerdict === "1" && <span className="not-italic text-2xl">✅</span>}
                     </summary>
                     <div className="mt-1 text-gray-600 dark:text-gray-400 text-xs">
                       <strong>Esperada:</strong> {m.expectedResponse}

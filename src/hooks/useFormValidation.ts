@@ -3,14 +3,14 @@
 import { useCallback, useState } from "react";
 import { validateForm } from "@/helpers/validationForm";
 
-type FieldName = "urlEasyPanel" | "contactId" | "locationId" | "emailTester";
+type FieldName = "urlEasyPanel" | "contactId" | "locationId";
 
 export interface UseFormValidationState {
   fieldErrors: Partial<Record<FieldName, string>>;
 }
 
 export interface UseFormValidationActions {
-  validate: (fields: { urlEasyPanel: string; contactId: string; locationId: string; emailTester: string; }) => {
+  validate: (fields: { urlEasyPanel: string; contactId: string; locationId: string; }) => {
     isValid: boolean;
     errors: string[];
   };
@@ -21,12 +21,11 @@ export interface UseFormValidationActions {
 export function useFormValidation(): UseFormValidationState & UseFormValidationActions {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
 
-  const validate = useCallback((fields: { urlEasyPanel: string; contactId: string; locationId: string; emailTester: string; }) => {
+  const validate = useCallback((fields: { urlEasyPanel: string; contactId: string; locationId: string; }) => {
     const { isValid, errors, fields: fieldErrs } = validateForm(
       fields.urlEasyPanel,
       fields.contactId,
-      fields.locationId,
-      fields.emailTester
+      fields.locationId
     );
     setFieldErrors(fieldErrs);
     return { isValid, errors };
