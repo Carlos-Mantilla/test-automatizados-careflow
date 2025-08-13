@@ -27,15 +27,16 @@ export interface SummarySectionProps {
   summaryRef: RefObject<HTMLDivElement | null>;
   results?: QuestionTestResult[];
   testFormData: TestFormData;
+  formattedTime?: string;
 }
 
-export default function SummarySection({ summary, summaryRef, results = [], testFormData }: SummarySectionProps) {
+export default function SummarySection({ summary, summaryRef, results = [], testFormData, formattedTime = "00:00" }: SummarySectionProps) {
   if (!summary) return null;
 
   // Obtener el nombre del cliente de la URL EasyPanel
   const clientName = testFormData.urlEasyPanel.split("host/")[1];
-  // Convierte tiempo de testeo en minutos/segundos
-  const formattedDuration = formatDuration(summary.duration);
+  // Usar el tiempo preservado del testeo
+  const formattedDuration = formattedTime;
 
   return (
     <section ref={summaryRef as RefObject<HTMLDivElement>} className="border border-black/10 dark:border-white/15 rounded-lg p-4">

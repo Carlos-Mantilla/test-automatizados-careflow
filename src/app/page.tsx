@@ -24,6 +24,8 @@ export default function Home() {
 
   // Historial del chat
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Preservar el tiempo del testeo completado
+  const [preservedTestTime, setPreservedTestTime] = useState<string>("00:00");
 
   // Custom hooks
   const { isRunning, formattedTime, start, reset, cleanup } = useTimer();
@@ -84,6 +86,7 @@ export default function Home() {
       // Limpiar chat para empezar en limpio
       setMessages([]);
       lastRenderedCountRef.current = 0; // reiniciar control de duplicados
+      setPreservedTestTime("00:00"); // resetear tiempo preservado
 
       reset(); // resetear antes de empezar
       resetBatchTest(); // resetear Testeo automático
@@ -96,6 +99,7 @@ export default function Home() {
 
     // Parar testeo
     if (isBatchRunning) {
+      setPreservedTestTime(formattedTime); // Preservar el tiempo actual antes de resetear
       stopBatchTest(); // Detener el Testeo automático en progreso
       reset(); // Resetear el timer a 00:00
     } else {
@@ -146,6 +150,7 @@ export default function Home() {
         summaryRef={summaryRef} 
         results={progress.completed} 
         testFormData={{urlEasyPanel, contactId, locationId}}
+        formattedTime={preservedTestTime}
         />
       </section>
     </main>
