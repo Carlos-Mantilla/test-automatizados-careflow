@@ -1,6 +1,6 @@
-## Auto Testing
-# CODA:
-https://coda.io/d/Bot-a-Codigo_dn7DgO8MuEN/Automatizacion-de-Testeos_suVCA9Bn#_lur9eM2t
+# Auto Testing
+## CODA: https://coda.io/d/Bot-a-Codigo_dn7DgO8MuEN/Automatizacion-de-Testeos_suVCA9Bn#_lur9eM2t
+## API para enviar emails: https://app.maileroo.com/
 
 ```bash
 npm install
@@ -8,7 +8,7 @@ npm install
 npm run dev
 ```
 
-# Data real para probar el form (gliohealth client)
+## Data real para probar el form (gliohealth client)
 ### url
 https://n8n-gotiger-bot-esdras-gliobot.fevig1.easypanel.host/gliohealth
 
@@ -17,3 +17,4 @@ https://n8n-gotiger-bot-esdras-gliobot.fevig1.easypanel.host/gliohealth
 
 ### Location ID
 odQon2KjVfTD1ubFdwBK
+
