@@ -26,7 +26,7 @@ export default function ChatSection(props: ChatSectionProps) {
   return (
     <section className="rounded-xl border border-black/10 dark:border-white/15 overflow-hidden">
       {/* Área de mensajes del chat - scrolleable */}
-      <div ref={chatRef as RefObject<HTMLDivElement>} className="h-[500px] overflow-y-auto bg-black/[.03] dark:bg-white/[.03] p-4 space-y-2">
+      <div ref={chatRef as RefObject<HTMLDivElement>} className="h-[700px] overflow-y-auto bg-black/[.03] dark:bg-white/[.03] p-4 space-y-2">
         {messages.length === 0 ? (
           <p className="text-sm text-foreground/70 text-center">Aquí aparecerá el progreso del testeo...</p>
         ) : (
@@ -40,43 +40,34 @@ export default function ChatSection(props: ChatSectionProps) {
                   : "bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500"
                 }`}
             >
-              <div className="flex items-baseline justify-between">
-                <span
-                  className={`font-semibold ${m.role === "user"
-                    ? "text-blue-900 dark:text-blue-300"
-                    : m.role === "system"
-                      ? "text-yellow-700 dark:text-yellow-300"
-                      : "text-green-700 dark:text-green-300"
-                    }`}
-                >
-                  {m.role === "user" ? "Tú: " : m.role === "system" ? "Sistema 🚨: " : "Bot EasyPanel 🤖: "}
-                </span>
 
-                {m.timestamp && (
-
-                  <span className="text-[10px] italic opacity-70">
-                    {m.timestamp}
-
+              {/* CONTENIDO DEL MENSAJE: Texto + Respuesta esperada (si existe) */}
+              <div>
+                <div>
+                  <span
+                    className={`font-semibold ${m.role === "user"
+                      ? "text-blue-900 dark:text-blue-300"
+                      : m.role === "system"
+                        ? "text-yellow-700 dark:text-yellow-300"
+                        : "text-green-700 dark:text-green-300"
+                      }`}
+                  >
+                    {m.role === "user" ? "Tú: " : m.role === "system" ? "Sistema 🚨: " : "Bot 🤖: "}
                   </span>
-                )}
-
-              </div>
-
-              <div
-                className={
-                  m.role === "user"
-                    ? "text-blue-900 dark:text-blue-100"
-                    : m.role === "system"
-                      ? "text-yellow-900 dark:text-yellow-100"
-                      : "text-green-800 dark:text-green-100 "
-                }
-              >
-                <div>{m.content}</div>
+                  {/* contenido del mensaje */}
+                  {m.content}
+                </div>
                 {m.expectedResponse && (
                   <details className="mt-2">
                     <summary className="cursor-pointer text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 flex justify-between items-center">
                       <span>Ver respuesta esperada</span>
-                      {/* Verificar si el mensaje es del bot y si tiene un verdicto */}
+                      {/* hora del mensaje */}
+                      {m.timestamp && (
+                        <span className="text-[10px] italic opacity-70 ml-auto mr-1">
+                          {m.timestamp}
+                        </span>
+                      )}
+                      {/* Veredicto del árbitro: ❌ = incorrecto, ✅ = correcto */}
                       {m.role === "assistant" && m.arbiterVerdict === "0" && <span className="not-italic text-2xl">❌</span>}
                       {m.role === "assistant" && m.arbiterVerdict === "1" && <span className="not-italic text-2xl">✅</span>}
                     </summary>

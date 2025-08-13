@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const reply = await arbiterAgent(messages);
     return Response.json({ message: reply });
   } catch (err) {
-    console.error("Error /api/chat:", err);
+    console.error("Error /api/arbiterAgent:", err);
     return Response.json({ error: "Fallo en el servidor" }, { status: 500 });
   }
 }

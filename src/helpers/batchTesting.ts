@@ -28,7 +28,7 @@ async function testSingleQuestion(
     };
 
     // Enviar al API con la pregunta en el payload
-    const response = await fetch("/api/bot/send", {
+    const response = await fetch("/api/bot", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -55,7 +55,7 @@ async function testSingleQuestion(
         },
       ];
 
-      const arbiterRes = await fetch("/api/chat", {
+      const arbiterRes = await fetch("/api/arbiterAgent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: arbiterMessages }),
