@@ -77,7 +77,7 @@ async function testSingleQuestion(
       actualResponse,
       success: data.ok,
       arbiterVerdict,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
     };
   } catch (error) {
     console.error(`Error testing question ${question.id}:`, error);
@@ -87,7 +87,7 @@ async function testSingleQuestion(
       expectedResponse: question.expected_response,
       actualResponse: "Error de conexión",
       success: false,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
     };
   }
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { RefObject } from "react";
-import { formatDuration } from "@/helpers/timeUtils";
 import DynamicToolTip from "@/app/components/dynamicToolTip";
 import type { QuestionTestResult, TestFormData } from "@/types/types";
 
@@ -82,8 +81,9 @@ export default function SummarySection({ summary, summaryRef, results = [], test
                   pregunta: result.question,
                   respuestaEsperada: result.expectedResponse,
                   respuestaBot: result.actualResponse,
+                  hora: result.timestamp,
                   veredicto: result.arbiterVerdict === "1" ? "✅" : "❌",
-                  fechaHora: result.timestamp,
+                  
                 })),
               };
 
