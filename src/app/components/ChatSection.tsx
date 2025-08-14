@@ -60,7 +60,7 @@ export default function ChatSection(props: ChatSectionProps) {
                 {m.expectedResponse && (
                   <details className="mt-2">
                     <summary className="cursor-pointer text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 flex justify-between items-center">
-                      <span>Ver respuesta esperada</span>
+                      <span>Ver guia de evaluacion</span>
                       {/* hora del mensaje */}
                       {m.timestamp && (
                         <span className="text-[10px] italic opacity-70 ml-auto mr-1">
@@ -72,7 +72,7 @@ export default function ChatSection(props: ChatSectionProps) {
                       {m.role === "assistant" && m.arbiterVerdict === "1" && <span className="not-italic text-2xl">✅</span>}
                     </summary>
                     <div className="mt-1 text-gray-600 dark:text-gray-400 text-xs">
-                      <strong>Esperada:</strong> {m.expectedResponse}
+                      - {m.expectedResponse}
                     </div>
                   </details>
                 )}

@@ -47,12 +47,12 @@ async function testSingleQuestion(
     let arbiterVerdict: "0" | "1" | undefined;
     try {
       const arbiterMessages: ChatMessage[] = [
-        { role: "user", content: `Pregunta: ${question.question}` },
-        { role: "user", content: `Respuesta del bot: ${actualResponse}` },
-        {
-          role: "user",
-          content: `Respuesta esperada: ${question.expected_response}`,
-        },
+        // Pregunta
+        { role: "user", content: question.question },
+        // Respuesta del bot
+        { role: "user", content: actualResponse },
+        // Guía de evaluación
+        { role: "user", content: question.evaluation_guideline },
       ];
 
       const arbiterRes = await fetch("/api/arbiterAgent", {
@@ -73,7 +73,7 @@ async function testSingleQuestion(
     return {
       questionId: question.id,
       question: question.question,
-      expectedResponse: question.expected_response,
+      expectedResponse: question.evaluation_guideline,
       actualResponse,
       success: data.ok,
       arbiterVerdict,
@@ -84,7 +84,7 @@ async function testSingleQuestion(
     return {
       questionId: question.id,
       question: question.question,
-      expectedResponse: question.expected_response,
+      expectedResponse: question.evaluation_guideline,
       actualResponse: "Error de conexión",
       success: false,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),

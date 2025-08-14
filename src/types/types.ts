@@ -24,7 +24,7 @@ export interface TestQuestion {
   id: string;
   category: string;
   question: string;
-  expected_response: string;
+  evaluation_guideline: string;
 }
 
 // Resultado de testeo de una pregunta individual

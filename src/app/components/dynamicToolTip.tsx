@@ -1,4 +1,4 @@
-import { testQuestionsData } from "@/data";
+import { testQuestionsData } from "@/testQuestionsData";
 
 // Construcción dinámica sin hardcode: cuenta por categoría y agrega prefijos usados
 const categoryStats = testQuestionsData.reduce(

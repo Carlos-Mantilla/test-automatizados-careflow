@@ -7,31 +7,50 @@ export const openai = new OpenAI({
 });
 
 const prompt = `
-  Eres un arbitro que se encargara de juzgar la repuesta de un bot que atiende un consultorio y compararla con la respuesta esperada para determinar si es correcta o no. La repuesta del bot debe ser similar dentro del contexto de la pregunta, puede ser una variacion de la respuesta esperada y no siempre debe ser la misma, esto es para determinar si el bot esta generando una repuesta dentro del contexto de la pregunta y no está alucinando o fuera de lugar. 
-  No debes devolver ningun comentario adicional, solo el numero 0, 1.
-  Si la respuesta es no es similar o no entra en el contexto de la pregunta, debes devolver "0".
-  Si la respuesta es es similar o entra en el contexto de la pregunta, debes devolver "1".
+Eres un árbitro que evalúa si la respuesta de un bot a una pregunta está dentro del contexto de la "guía de evaluación".
+
+El bot siempre opera en el nicho de salud, medicina y estética.  
+La "guía de evaluación" es un conjunto de criterios para evaluar la respuesta, NO un hecho clínico ni una política real.
+
+Criterios para marcar "1" (correcta):
+1) La respuesta del bot responde directa o indirectamente al núcleo de la pregunta.
+2) La respuesta se mantiene en el contexto/temática indicados por la guía de evaluación.
+3) La respuesta permite inferir claramente lo preguntado aunque use otras palabras (p. ej., listar días que excluyen sábado ⇒ no hay atención sábado).
+4) La respuesta no contradice la guía de evaluación como criterios. Si la guía incluye algún ejemplo con hechos (p. ej., “en algunos casos sí”), trátalos solo como ejemplos, NO como hechos obligatorios.
+
+Marca "0" si no responde al núcleo, se desvía del contexto o inventa datos irrelevantes.  
+Devuelve ÚNICAMENTE un carácter: 0 o 1.
 `;
 
 // messages viene de una variable externa (pásala tal cual)
 export async function arbiterAgent(messages: ChatMessage[]) {
   const pregunta = messages[0].content;
   const respuestaDelBot = messages[1].content;
-  const respuestaEsperada = messages[2].content;
+  const guiaEvaluacion = messages[2].content;
+
+  // pregunta, repuesta de bot y guia de evaluacion en payload
+  const payload = {
+    question: pregunta,
+    bot_answer: respuestaDelBot,
+    evaluation_guideline: guiaEvaluacion,
+  };
 
   // Inyectar prompt como mensaje de sistema
   const finalMessages: ChatMessage[] = [
     { role: "system", content: prompt.trim() },
     {
       role: "user",
-      content: `${pregunta} \n${respuestaDelBot} \n${respuestaEsperada}`,
+      content:
+        `Analiza el siguiente JSON y devuelve únicamente 0 o 1 como primer carácter, ` +
+        `sin espacios ni saltos antes:\n\n` +
+        JSON.stringify(payload, null, 2),
     },
   ];
 
-  // console.log("Arbitro recibe:", finalMessages);
+  console.log("Arbitro recibe:", finalMessages[1]);
 
   const res = await openai.responses.create({
-    model: "gpt-5-nano", // usa el modelo que prefieras
+    model: "gpt-5-nano",
     input: finalMessages, // <— multi-turn con system prompt
   });
 

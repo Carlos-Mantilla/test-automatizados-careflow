@@ -5,7 +5,7 @@ import { useTimer } from "@/hooks/useTimer";
 import { useBatchFlow } from "@/hooks/useBatchFlow";
 import { useBatchTesting } from "@/hooks/useBatchTesting";
 import { addChatMessage } from "@/helpers/chatUtils";
-import { testQuestionsData } from "@/data";
+import { testQuestionsData } from "@/testQuestionsData";
 import type { ChatMessage } from "@/types/types";
 import { useFormValidation } from "@/hooks/useFormValidation";
 // UI components:
