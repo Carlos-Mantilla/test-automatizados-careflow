@@ -11,7 +11,7 @@ import { useFormValidation } from "@/hooks/useFormValidation";
 // UI components:
 import ChatSection from "@/app/components/ChatSection";
 import FormSection from "@/app/components/FormSection";
-import SummarySection from "@/app/components/SummarySection";
+import SummarySection from "@/app/components/summary/SummarySection";
 
 
 export default function Home() {

@@ -55,3 +55,29 @@ export interface TestResult {
   messageBody?: string;
   botResponse?: unknown;
 }
+
+
+// ==================== SUMMARY ====================
+
+// Datos del resumen de testeo
+export interface SummaryData {
+  total: number;
+  completed: number;
+  successful: number;
+  failed: number;
+  successRate: number;
+  arbiterCorrect?: number;
+  arbiterIncorrect?: number;
+  arbiterDecided?: number;
+  arbiterSuccessRate?: number;
+  categoryCounts: Record<string, number>;
+  duration: number;
+}
+
+// Props compartidas para botones del summary
+export interface SummaryButtonProps {
+  summary: SummaryData;
+  results: QuestionTestResult[];
+  testFormData: TestFormData;
+  formattedTime: string;
+}
