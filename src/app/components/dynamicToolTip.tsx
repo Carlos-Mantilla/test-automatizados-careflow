@@ -37,7 +37,7 @@ export default function DynamicToolTip() {
                 </svg>
             </button>
             <span
-                className="absolute left-1/2 -translate-x-1/2 min-w-44 -top-27
+                className="absolute left-1/2 -translate-x-1/2 min-w-48 -top-27
           bg-gray-900 text-white text-xs p-2 rounded 
           opacity-0 group-hover:opacity-100 transition"
             >

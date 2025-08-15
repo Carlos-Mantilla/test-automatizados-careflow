@@ -43,10 +43,12 @@ export default function SummarySection({ summary, summaryRef, results = [], test
 
       {/* Controles de descarga */}
       {results.length > 0 && (
-        <div className="flex justify-center gap-3 mb-4 animate-pulse active:scale-95 transition-all duration-100">
+        <div className="flex justify-center gap-3 mb-4 text-sm text-white font-semibold">
+
+          {/* Descargar JSON */}
           <button
             type="button"
-            className="px-3 py-1.5 text-sm rounded bg-gray-800 text-white hover:bg-gray-700 cursor-pointer"
+            className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 cursor-pointer shadow-md shadow-gray-600 animate-pulse active:scale-95 transition-all duration-100"
             onClick={() => {
               // Crear estructura personalizada del JSON
               const customPayload = {
@@ -83,7 +85,7 @@ export default function SummarySection({ summary, summaryRef, results = [], test
                   respuestaBot: result.actualResponse,
                   hora: result.timestamp,
                   veredicto: result.arbiterVerdict === "1" ? "✅" : "❌",
-                  
+
                 })),
               };
 
@@ -97,6 +99,89 @@ export default function SummarySection({ summary, summaryRef, results = [], test
             }}
           >
             Descargar JSON
+          </button>
+
+          {/* Enviar a n8n Webhook (Slack/it email) */}
+          <button
+            type="button"
+            className="px-4 py-2 rounded-lg bg-purple-900 hover:bg-purple-600 cursor-pointer shadow-md shadow-purple-500 animate-pulse active:scale-95 transition-all duration-100"
+            onClick={async () => {
+              // Usar EXACTAMENTE la misma estructura que el botón de descarga
+              const customPayload = {
+                metadata: {
+                  nombreCliente: clientName,
+                  fechaHora: new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' }) + " (Mexico_City)",
+                  urlEasyPanel: testFormData.urlEasyPanel,
+                  locationId: testFormData.locationId,
+                  contactId: testFormData.contactId,
+                  totalPreguntas: summary.total,
+                  preguntasCompletadas: summary.completed,
+                  duracionTest: formattedDuration,
+                },
+                metricasTesteo: {
+                  llamadasHTTP: {
+                    total: summary.total,
+                    completadas: summary.completed,
+                    exitosas: summary.successful,
+                    fallidas: summary.failed,
+                    tasaExito: summary.successRate,
+                  },
+                  resultadoTest: {
+                    correctas: summary.arbiterCorrect ?? 0,
+                    incorrectas: summary.arbiterIncorrect ?? 0,
+                    evaluadas: summary.arbiterDecided ?? 0,
+                    tasaExito: summary.arbiterSuccessRate ?? 0,
+                  },
+                  categorias: summary.categoryCounts,
+                },
+                resultados: results.map(result => ({
+                  id: result.questionId,
+                  pregunta: result.question,
+                  respuestaEsperada: result.expectedResponse,
+                  respuestaBot: result.actualResponse,
+                  hora: result.timestamp,
+                  veredicto: result.arbiterVerdict === "1" ? "✅" : "❌",
+                })),
+              };
+
+              // Pedir confirmación antes de enviar
+              const confirmar = window.confirm(
+                `¿Estás seguro de que quieres enviar el reporte de testeo a n8n?\n\n` +
+                `Cliente: ${clientName}\n` +
+                `Preguntas: ${summary.completed}/${summary.total}\n` +
+                `Duración: ${formattedDuration}`
+              );
+
+                             if (confirmar) {
+                 try {
+                   // Enviar el MISMO JSON que se descarga
+                   const webhookUrl = 'https://automation.gotiger.ai/webhook-test/4d5ba62d-fc51-4c17-83e6-4f5355dea414';
+
+                   const response = await fetch(webhookUrl, {
+                     method: 'POST',
+                     headers: {
+                       'Content-Type': 'application/json',
+                     },
+                     body: JSON.stringify(customPayload), // Enviar directamente el JSON completo
+                   });
+
+                  console.log("Enviando a n8n:", customPayload);
+
+                  if (response.ok) {
+                    alert('✅ Reporte enviado exitosamente a n8n');
+                  } else {
+                    const errorText = await response.text();
+                    throw new Error(`Error ${response.status}: ${response.statusText} - ${errorText}`);
+                  }
+                } catch (error) {
+                  console.error('Error enviando a n8n:', error);
+                  const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+                  alert(`❌ Error al enviar: ${errorMessage}`);
+                }
+              }
+            }}
+          >
+            Enviar JSON a n8n
           </button>
         </div>
       )}

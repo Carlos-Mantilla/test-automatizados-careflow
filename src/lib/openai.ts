@@ -50,7 +50,7 @@ export async function arbiterAgent(messages: ChatMessage[]) {
   console.log("Arbitro recibe:", finalMessages[1]);
 
   const res = await openai.responses.create({
-    model: "gpt-5-nano",
+    model: "gpt-5-mini",
     input: finalMessages, // <— multi-turn con system prompt
   });
 
