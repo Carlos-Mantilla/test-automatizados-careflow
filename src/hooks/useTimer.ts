@@ -52,11 +52,9 @@ export function useTimer() {
   }, []);
 
   return {
-    elapsedSeconds,
     isRunning,
     formattedTime,
     start,
-    stop,
     reset,
     cleanup
   };

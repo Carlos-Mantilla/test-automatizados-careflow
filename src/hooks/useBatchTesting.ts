@@ -67,7 +67,7 @@ export function useBatchTesting() {
     // Marcar inmediatamente como no corriendo
     setProgress((prev) => ({ ...prev, isRunning: false }));
 
-    // Crear resumen parcial y corregir progreso tras detener
+    // Crear resumen parcial tras detener
     setTimeout(() => {
       setProgress((prev) => {
         const updated = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useTimer } from "@/hooks/useTimer";
 import { useBatchFlow } from "@/hooks/useBatchFlow";
 import { useBatchTesting } from "@/hooks/useBatchTesting";
@@ -24,12 +24,15 @@ export default function Home() {
 
   // Historial del chat
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  // Preservar el tiempo del testeo completado
-  const [preservedTestTime, setPreservedTestTime] = useState<string>("00:00");
-
+  
   // Custom hooks
   const { isRunning, formattedTime, start, reset, cleanup } = useTimer();
   const { progress, summary, executeBatchTest, resetBatchTest, stopBatchTest, isRunning: isBatchRunning } = useBatchTesting();
+  
+  // Lógica independiente para duración total del summary
+  const [summaryDuration, setSummaryDuration] = useState<string>("00:00");
+  const [summaryStartTime, setSummaryStartTime] = useState<number | null>(null);
+  const summaryIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Referencias para scroll automático
   const chatRef = useRef<HTMLDivElement | null>(null);
@@ -42,12 +45,50 @@ export default function Home() {
     return cleanup;
   }, [cleanup]);
 
+  // Cleanup del timer del summary al desmontar el componente
+  useEffect(() => {
+    return () => {
+      if (summaryIntervalRef.current) {
+        clearInterval(summaryIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Funciones para manejar la duración del summary
+  const startSummaryTimer = useCallback(() => {
+    const startTime = Date.now();
+    setSummaryStartTime(startTime);
+    setSummaryDuration("00:00");
+    
+    summaryIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const minutes = Math.floor(elapsed / 60000);
+      const seconds = Math.floor((elapsed % 60000) / 1000);
+      const formatted = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+      setSummaryDuration(formatted);
+    }, 1000);
+  }, []);
+
+  const stopSummaryTimer = useCallback(() => {
+    if (summaryIntervalRef.current) {
+      clearInterval(summaryIntervalRef.current);
+      summaryIntervalRef.current = null;
+    }
+  }, []);
+
+  const resetSummaryTimer = useCallback(() => {
+    stopSummaryTimer();
+    setSummaryDuration("00:00");
+    setSummaryStartTime(null);
+  }, [stopSummaryTimer]);
+
   // Hook de flujo de Testeo automático
   const { startBatch } = useBatchFlow({
     executeBatchTest,
     setMessages,
     summaryRef,
     resetTimer: reset,
+    stopSummaryTimer,
     testQuestions: testQuestionsData,
   });
 
@@ -86,11 +127,12 @@ export default function Home() {
       // Limpiar chat para empezar en limpio
       setMessages([]);
       lastRenderedCountRef.current = 0; // reiniciar control de duplicados
-      setPreservedTestTime("00:00"); // resetear tiempo preservado
 
       reset(); // resetear antes de empezar
       resetBatchTest(); // resetear Testeo automático
+      resetSummaryTimer(); // resetear timer del summary
       start(); // iniciar timer
+      startSummaryTimer(); // iniciar timer del summary
 
       // Ejecutar Testeo automático
       void startBatch({ urlEasyPanel, contactId, locationId });
@@ -99,9 +141,9 @@ export default function Home() {
 
     // Parar testeo
     if (isBatchRunning) {
-      setPreservedTestTime(formattedTime); // Preservar el tiempo actual antes de resetear
+      stopSummaryTimer(); // Detener timer del summary (preserva el tiempo)
       stopBatchTest(); // Detener el Testeo automático en progreso
-      reset(); // Resetear el timer a 00:00
+      reset(); // Resetear el timer del chat a 00:00
     } else {
       reset(); // Resetear el timer si es testeo individual
       resetBatchTest(); // Resetear batch si no está corriendo
@@ -150,7 +192,7 @@ export default function Home() {
         summaryRef={summaryRef} 
         results={progress.completed} 
         testFormData={{urlEasyPanel, contactId, locationId}}
-        formattedTime={preservedTestTime}
+        formattedTime={summaryDuration}
         />
       </section>
     </main>

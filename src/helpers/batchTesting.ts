@@ -228,10 +228,6 @@ export function createBatchTestSummary(
     arbiterDecided,
     arbiterSuccessRate,
     categoryCounts,
-    duration:
-      results.length > 0
-        ? new Date(results[results.length - 1].timestamp).getTime() -
-          new Date(results[0].timestamp).getTime()
-        : 0,
+    duration: 0, // Ya no se calcula aquí, se maneja independientemente en el componente
   };
 }
