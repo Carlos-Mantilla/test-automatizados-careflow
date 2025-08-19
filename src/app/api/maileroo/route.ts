@@ -1,3 +1,5 @@
+import { extractEmailData, type EmailData } from "@/helpers/mailerooUtils";
+
 export async function POST(req: Request) {
   try {
     const apiKey = process.env.MAILEROO_API_KEY;
@@ -7,16 +9,21 @@ export async function POST(req: Request) {
       throw new Error("MEILEROO_API_KEY no configurado");
     }
 
-    // Obtener el payload del request
-    const { n8nResponse, clientName } = await req.json();
+    // Obtener todo el payload del request
+    const requestBody = await req.json();
+    console.log("NO procesado:", requestBody);
 
     // Validar que se proporcione la respuesta de n8n
-    if (!n8nResponse) {
+    if (!requestBody.n8nResponse) {
       throw new Error("Respuesta de n8n no proporcionada");
     }
 
+    // Extraer todos los datos del texto de n8n (utils Function)
+    const emailData: EmailData = extractEmailData(requestBody.n8nResponse);
+    console.log("Procesado", emailData);
+
     const fromAddress = "careflow@3be0801866849462.maileroo.org"; // dominio gratis de maileroo
-    const toAddress = "sergiog@starassistants.com";
+    const toAddress = "it@starassistants.com";
 
     const res = await fetch("https://smtp.maileroo.com/api/v2/emails", {
       method: "POST",
@@ -33,8 +40,8 @@ export async function POST(req: Request) {
           address: toAddress,
           display_name: "AI Team",
         },
-        subject: `Resultado auto-testing: ${clientName || "Cliente"}`,
-        plain: n8nResponse,
+        subject: `auto-testing Careflow: ${emailData.clientName || "Cliente"}`,
+        plain: emailData.cleanedResponse,
         html: `
            <!DOCTYPE html>
            <html>
@@ -64,9 +71,9 @@ export async function POST(req: Request) {
                    📋 Información del Cliente
                  </h2>
                  <div style="background: #ecf0f1; padding: 20px; border-radius: 8px; border-left: 4px solid #67dcffff;">
-                   <p style="margin: 8px 0; font-size: 16px; line-height: 1.5;"><strong>Cliente:</strong> <span style="color: #ff66c4ff; font-weight: bold; font-size: 16px;">${
-                     clientName || "N/A"
-                   }</span></p>
+                                       <p style="margin: 8px 0; font-size: 16px; line-height: 1.5;"><strong>Cliente:</strong> <span style="color: #ff66c4ff; font-weight: bold; font-size: 16px;">${
+                                         emailData.clientName || "N/A"
+                                       }</span></p>
                    <p style="margin: 8px 0; font-size: 16px; line-height: 1.5;"><strong>Fecha:</strong> <span style="font-size: 16px;">${new Date().toLocaleString(
                      "es-MX",
                      { timeZone: "America/Mexico_City" }
@@ -85,21 +92,17 @@ export async function POST(req: Request) {
                      <div style="text-align: center; padding: 15px; background: white; border-radius: 6px;">
                        <div style="font-size: 24px; font-weight: bold; color: #67dcffff;">⏱️</div>
                        <div style="font-size: 18px; font-weight: bold; color: #2c3e50;">Duración</div>
-                       <div style="color: #7f8c8d; font-size: 16px; font-weight: bold; margin-top: 8px;">${
-                         n8nResponse.match(/Duracion: ([^\n]+)/)?.[1] ||
-                         n8nResponse.match(/Duración: ([^\n]+)/)?.[1] ||
-                         "N/A"
-                       }</div>
+                                               <div style="color: #7f8c8d; font-size: 16px; font-weight: bold; margin-top: 8px;">${
+                                                 emailData.duration
+                                               }</div>
                      </div>
                      <!-- SUCCESS METRIC CARD -->
                      <div style="text-align: center; padding: 15px; background: white; border-radius: 6px;">
                        <div style="font-size: 24px; font-weight: bold; color: #ff66c4ff;">🎯</div>
                        <div style="font-size: 18px; font-weight: bold; color: #2c3e50;">Éxito</div>
-                       <div style="color: #7f8c8d; font-size: 16px; font-weight: bold; margin-top: 8px;">${
-                         n8nResponse.match(/Exito: ([^\n]+)/)?.[1] ||
-                         n8nResponse.match(/Éxito: ([^\n]+)/)?.[1] ||
-                         "N/A"
-                       }</div>
+                                               <div style="color: #7f8c8d; font-size: 16px; font-weight: bold; margin-top: 8px;">${
+                                                 emailData.successRate
+                                               }</div>
                      </div>
                    </div>
                  </div>
@@ -111,20 +114,23 @@ export async function POST(req: Request) {
                    📥 Descargar Reporte
                  </h2>
                  <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; border-left: 4px solid #67dcffff; text-align: center;">
-                   ${(() => {
-                     const downloadMatch = n8nResponse.match(
-                       /Descargar JSON: (https:\/\/[^\s]+)/
-                     );
-                     if (downloadMatch) {
-                       return `
-                         <a href="${downloadMatch[1]}" 
-                            style="display: inline-block; background: linear-gradient(135deg, #67dcffff 0%, #ff66c4ff 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s ease;">
-                           📄 Descargar JSON Completo
-                         </a>
-                       `;
-                     }
-                     return '<p style="color: #7f8c8d;">Enlace de descarga no disponible</p>';
-                   })()}
+                                       ${(() => {
+                                         if (emailData.downloadUrl) {
+                                           return `
+                          <a href="${emailData.downloadUrl}" 
+                             style="display: inline-block; background: linear-gradient(135deg, #67dcffff 0%, #ff66c4ff 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+                            📄 Descargar JSON Completo
+                          </a>
+                        `;
+                                         }
+
+                                         // Debug: mostrar qué URL se encontró
+                                         console.log(
+                                           "URL de descarga encontrada:",
+                                           emailData.downloadUrl
+                                         );
+                                         return '<p style="color: #7f8c8d;">Enlace de descarga no disponible</p>';
+                                       })()}
                  </div>
                </div>
 
@@ -134,7 +140,9 @@ export async function POST(req: Request) {
                    📄 Detalles del Testeo
                  </h2>
                  <div style="background: #fff0f5; padding: 20px; border-radius: 8px; border-left: 4px solid #ff66c4ff;">
-                   <pre style="font-family: 'Courier New', monospace; font-size: 16px; line-height: 1.5; margin: 0; white-space: pre-wrap; color: #2c3e50; background: white; padding: 15px; border-radius: 6px; border: 1px solid #ecf0f1;">${n8nResponse}</pre>
+                                       <pre style="font-family: 'Courier New', monospace; font-size: 16px; line-height: 1.5; margin: 0; white-space: pre-wrap; color: #2c3e50; background: white; padding: 15px; border-radius: 6px; border: 1px solid #ecf0f1;">${
+                                         emailData.cleanedResponse
+                                       }</pre>
                  </div>
                </div>
 

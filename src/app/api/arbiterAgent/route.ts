@@ -1,4 +1,4 @@
-import { arbiterAgent } from "@/lib/openai";
+import { arbiterAgent } from "@/openai";
 import type { ChatMessage } from "@/types/types";
 
 export async function POST(req: Request) {

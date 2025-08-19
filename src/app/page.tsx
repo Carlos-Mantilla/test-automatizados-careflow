@@ -9,9 +9,11 @@ import { testQuestionsData } from "@/testQuestionsData";
 import type { ChatMessage } from "@/types/types";
 import { useFormValidation } from "@/hooks/useFormValidation";
 // UI components:
+import Header from "@/app/components/Header";
 import ChatSection from "@/app/components/ChatSection";
 import FormSection from "@/app/components/FormSection";
 import SummarySection from "@/app/components/summary/SummarySection";
+import VideoSection from "@/app/components/VideoSection";
 
 
 export default function Home() {
@@ -24,11 +26,11 @@ export default function Home() {
 
   // Historial del chat
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  
+
   // Custom hooks
   const { isRunning, formattedTime, start, reset, cleanup } = useTimer();
   const { progress, summary, executeBatchTest, resetBatchTest, stopBatchTest, isRunning: isBatchRunning } = useBatchTesting();
-  
+
   // Lógica independiente para duración total del summary
   const [summaryDuration, setSummaryDuration] = useState<string>("00:00");
   const [summaryStartTime, setSummaryStartTime] = useState<number | null>(null);
@@ -59,7 +61,7 @@ export default function Home() {
     const startTime = Date.now();
     setSummaryStartTime(startTime);
     setSummaryDuration("00:00");
-    
+
     summaryIntervalRef.current = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const minutes = Math.floor(elapsed / 60000);
@@ -152,49 +154,58 @@ export default function Home() {
 
 
   return (
-    <main className="min-h-screen w-full px-6 py-8 md:px-10">
-      <section className="mx-auto w-full max-w-5xl space-y-6">
+    <div className="flex min-h-screen">
+      {/* ==================== SIDEBAR HEADER ==================== */}
+      <Header />
 
-        {/* ==================== HEADER ==================== */}
-        <header className="flex items-center justify-between">
-          <h1 className="text-xl md:text-2xl font-semibold tracking-tight mx-auto">
-            Testeo Automático Bots
-          </h1>
-        </header>
+      {/* ==================== MAIN CONTENT ==================== */}
+      <main className="flex-1 ml-64 px-6 py-8 md:px-10">
+        <section className="mx-auto w-full max-w-5xl space-y-6">
 
-        {/* ==================== FORMULARIO ==================== */}
-        <FormSection
-          urlEasyPanel={urlEasyPanel}
-          contactId={contactId}
-          locationId={locationId}
-          fieldErrors={fieldErrors}
-          onChange={(field, value) => {
-            if (field === "urlEasyPanel") setUrlEasyPanel(value);
-            if (field === "contactId") setContactId(value);
-            if (field === "locationId") setLocationId(value);
-          }}
-        />
+          {/* ==================== PAGE TITLE ==================== */}
+          <header className="flex items-center justify-between">
+            <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
+              Testeo Automático Bots
+            </h1>
+          </header>
 
-        {/* ==================== CHAT ==================== */}
-        <ChatSection
-          messages={messages}
-          chatRef={chatRef}
-          progressCurrent={progress.current}
-          progressTotal={testQuestionsData.length}
-          isBatchRunning={isRunning || isBatchRunning}
-          onStartClick={handleStart}
-          formattedTime={formattedTime}
-        />
+          {/* ==================== FORMULARIO ==================== */}
+          <FormSection
+            urlEasyPanel={urlEasyPanel}
+            contactId={contactId}
+            locationId={locationId}
+            fieldErrors={fieldErrors}
+            onChange={(field, value) => {
+              if (field === "urlEasyPanel") setUrlEasyPanel(value);
+              if (field === "contactId") setContactId(value);
+              if (field === "locationId") setLocationId(value);
+            }}
+          />
 
-        {/* ==================== ESTADÍSTICAS ==================== */}
-        <SummarySection 
-        summary={summary} 
-        summaryRef={summaryRef} 
-        results={progress.completed} 
-        testFormData={{urlEasyPanel, contactId, locationId}}
-        formattedTime={summaryDuration}
-        />
-      </section>
-    </main>
+          {/* ==================== CHAT ==================== */}
+          <ChatSection
+            messages={messages}
+            chatRef={chatRef}
+            progressCurrent={progress.current}
+            progressTotal={testQuestionsData.length}
+            isBatchRunning={isRunning || isBatchRunning}
+            onStartClick={handleStart}
+            formattedTime={formattedTime}
+          />
+
+          {/* ==================== ESTADÍSTICAS ==================== */}
+          <SummarySection
+            summary={summary}
+            summaryRef={summaryRef}
+            results={progress.completed}
+            testFormData={{ urlEasyPanel, contactId, locationId }}
+            formattedTime={summaryDuration}
+          />
+
+          {/* ==================== VIDEO SECTION ==================== */}
+          <VideoSection />
+        </section>
+      </main>
+    </div>
   );
 }
