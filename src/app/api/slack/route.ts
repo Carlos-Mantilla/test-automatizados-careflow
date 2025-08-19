@@ -1,4 +1,4 @@
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     const webhookUrl = process.env.N8N_WEBHOOK_URL;
 

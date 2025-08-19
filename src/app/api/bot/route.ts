@@ -1,6 +1,6 @@
 import type { TestFormData } from "@/types/types";
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     const requestData = await req.json();
     const testFormData = requestData as TestFormData;

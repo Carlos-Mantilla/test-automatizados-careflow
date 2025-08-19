@@ -1,7 +1,7 @@
 import { arbiterAgent } from "@/openai";
 import type { ChatMessage } from "@/types/types";
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     const { messages } = (await req.json()) as { messages: ChatMessage[] };
     if (!Array.isArray(messages)) {

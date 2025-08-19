@@ -1,6 +1,6 @@
 import { extractEmailData, type EmailData } from "@/helpers/mailerooUtils";
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     const apiKey = process.env.MAILEROO_API_KEY;
 
