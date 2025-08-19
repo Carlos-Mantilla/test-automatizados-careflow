@@ -46,19 +46,7 @@ const Header = () => {
                         </Link>
                     </li>
 
-                    <li>
-                        <Link
-                            href="https://drive.google.com/drive/u/0/folders/1palevGGCwzi4VCct375Ok9hsKn3rTSiS"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-colors duration-200 group"
-                        >
-                            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                                <span className="text-sm">☁️</span>
-                            </div>
-                            <span className="font-medium">Google Drive</span>
-                        </Link>
-                    </li>
+
 
                     <li>
                         <Link
@@ -85,6 +73,19 @@ const Header = () => {
                                 <span className="text-sm">⚙️</span>
                             </div>
                             <span className="font-medium">EasyPanel</span>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            href="https://drive.google.com/drive/u/0/folders/1palevGGCwzi4VCct375Ok9hsKn3rTSiS"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-colors duration-200 group"
+                        >
+                            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                                <span className="text-sm">☁️</span>
+                            </div>
+                            <span className="font-medium">Google Drive</span>
                         </Link>
                     </li>
                 </ul>
