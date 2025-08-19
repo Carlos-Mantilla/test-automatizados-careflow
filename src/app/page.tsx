@@ -162,13 +162,6 @@ export default function Home() {
       <main className="flex-1 ml-64 px-6 py-8 md:px-10">
         <section className="mx-auto w-full max-w-5xl space-y-6">
 
-          {/* ==================== PAGE TITLE ==================== */}
-          <header className="flex items-center justify-between">
-            <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
-              Testeo Automático Bots
-            </h1>
-          </header>
-
           {/* ==================== FORMULARIO ==================== */}
           <FormSection
             urlEasyPanel={urlEasyPanel}
