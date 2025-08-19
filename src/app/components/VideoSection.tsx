@@ -66,7 +66,7 @@ const VideoSection = () => {
                     <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                         <iframe
                             className="absolute top-0 left-0 w-full h-full rounded-lg"
-                            src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                            src="https://www.youtube.com/embed/O2gRFb1ZB0M?si=xHx3nyIKU7R3ntWC"
                             title="Video de ayuda - Auto-Testing Careflow"
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
