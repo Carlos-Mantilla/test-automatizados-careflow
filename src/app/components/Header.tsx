@@ -23,7 +23,42 @@ const Header = () => {
             <nav className="p-4">
                 <ul className="space-y-2">
 
+                    <h3 className="font-semibold text-[#6bdaff] text-center mt-4">Herramientas</h3>
 
+                    <li>
+                        <Link
+                            href="https://century21-careflow-knowledge-panel.fevig1.easypanel.host/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-colors duration-200 group"
+                        >
+                            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                                <span className="text-sm">🧠</span>
+                            </div>
+                            <span className="font-medium">Knowledge Panel</span>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            href="https://century21-microservicio-update-ghl-calendars.fevig1.easypanel.host/ui"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-colors duration-200 group"
+                        >
+                            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                                <span className="text-sm">📅</span>
+                            </div>
+                            <span className="font-medium">GHL Calendar Sync</span>
+                        </Link>
+                    </li>
+
+
+
+                    {/* Separador */}
+                    <li className="py-2">
+                        <div className="border-t border-white/20"></div>
+                    </li>
+                    <h3 className="font-semibold text-[#6bdaff] text-center mt-4">Links</h3>
                     <li>
                         <Link
                             href="#guia"
@@ -35,21 +70,6 @@ const Header = () => {
                             <span className="font-medium">Guía de uso</span>
                         </Link>
                     </li>
-
-                    <li>
-                        <Link
-                            href="https://century21-microservicio-update-ghl-calendars.fevig1.easypanel.host/ui"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-colors duration-200 group"
-                        >
-                            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                                <span className="text-sm">📅</span>
-                            </div>
-                            <span className="font-medium">GHL Calendar Tool</span>
-                        </Link>
-                    </li>
-
                     <li>
                         <Link
                             href="https://app.gohighlevel.com/v2/location/Qu3Y4OkCCLFg5jDh3qa8/contacts/smart_list/All"
@@ -60,7 +80,7 @@ const Header = () => {
                             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
                                 <span className="text-sm">🚀</span>
                             </div>
-                            <span className="font-medium">GHL Subcuenta</span>
+                            <span className="font-medium">GHL Subcuentas</span>
                         </Link>
                     </li>
 
