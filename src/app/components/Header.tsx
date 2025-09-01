@@ -27,7 +27,7 @@ const Header = () => {
 
                     <li>
                         <Link
-                            href="https://century21-careflow-knowledge-panel.fevig1.easypanel.host/"
+                            href="https://apps-careflow-knowledge-panel.fevig1.easypanel.host/admin"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-colors duration-200 group"
@@ -40,7 +40,7 @@ const Header = () => {
                     </li>
                     <li>
                         <Link
-                            href="https://century21-microservicio-update-ghl-calendars.fevig1.easypanel.host/ui"
+                            href="https://apps-microservicio-update-ghl-calendars.fevig1.easypanel.host/ui"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-colors duration-200 group"
