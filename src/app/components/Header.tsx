@@ -51,6 +51,19 @@ const Header = () => {
                             <span className="font-medium">GHL Calendar Sync</span>
                         </Link>
                     </li>
+                    <li>
+                        <Link
+                            href="https://apps-bots-chat-independiente.fevig1.easypanel.host/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-colors duration-200 group"
+                        >
+                            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                                <span className="text-sm">💬</span>
+                            </div>
+                            <span className="font-medium">Chat Independiente</span>
+                        </Link>
+                    </li>
 
 
 
